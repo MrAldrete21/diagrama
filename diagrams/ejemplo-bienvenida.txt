@@ -1,0 +1,14 @@
+type: flowchart
+title: Loop con Claude Code
+direction LR
+
+Disenio [shape: circle, label: Diseno, status: done]
+API [label: API REST, status: wip, file: src/api.ts, labels: feature]
+DB [shape: cylinder, label: Postgres, status: done, file: src/db.ts]
+Auth [label: Auth, status: blocked, labels: feature]
+Nuevo [label: Feature nueva, request: true, labels: feature]
+
+Disenio > API
+API > DB
+API > Auth
+Disenio > Nuevo

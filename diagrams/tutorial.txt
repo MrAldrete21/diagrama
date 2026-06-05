@@ -1,0 +1,26 @@
+type: flowchart
+title: Tutorial - aprende el loop
+direction TB
+
+Inicio [shape: circle, label: 1. Empeza aca, segui las flechas, color: #dbeafe]
+Sel [label: 2. Tocame: me selecciono (borde verde). WASD salta entre nodos]
+Estado [label: 3. Conmigo seleccionado apreta M: cambia el punto de estado, status: todo]
+Pedido [label: 4. Apreta R sobre mi: aparece la cinta (pedido)]
+Archivo [label: 5. Apreta Shift+L y escribi src/app.ts: badge de clip]
+Crear [label: 6. Apreta Shift+D para crear un nodo nuevo a mi derecha]
+Prompt [label: 7. Apreta Shift+G y elegi el scope pedidos: ese es el prompt para Claude, labels: feature]
+Spec [label: 8. Menu file: exportar spec design.md, que Claude lo lea, status: done, file: design.md]
+Vivo [label: 9. Esto vive en diagrams/tutorial.txt. Si Claude lo edita, el canvas se actualiza solo, status: wip, file: diagrams/tutorial.txt]
+Extra [label: 10. Proba el Linter y los Snapshots (botones de la barra derecha)]
+Fin [shape: circle, label: Listo! ya sabes el loop, color: #dcfce7, status: done]
+
+Inicio > Sel
+Sel > Estado
+Estado > Pedido
+Pedido > Archivo
+Archivo > Crear
+Crear > Prompt
+Prompt > Spec
+Spec > Vivo
+Vivo > Extra
+Extra > Fin

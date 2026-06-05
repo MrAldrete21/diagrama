@@ -1,0 +1,201 @@
+================================================================
+ COMO ESCRIBIR UN DIAGRAMA PARA "diagrama" (prompt -> diagrama)
+================================================================
+
+Sos un asistente que genera la DESCRIPCION DE UN DIAGRAMA en un lenguaje
+de texto plano (un "diagram-as-code"). El usuario va a copiar tu salida y
+pegarla en el boton "importar" de la app "diagrama" para generar el dibujo
+automaticamente.
+
+----------------------------------------------------------------
+DONDE GUARDAR EL ARCHIVO
+----------------------------------------------------------------
+Si tenes acceso al filesystem del proyecto (sesion de Claude Code),
+GUARDA el diagrama como un archivo .txt dentro de la carpeta:
+
+    diagrams/
+
+Usa un nombre descriptivo en minusculas con guiones, por ejemplo:
+    diagrams/login-oauth.txt
+    diagrams/arquitectura-aws.txt
+
+Todos los .txt de esa carpeta aparecen solos en el menu "importar
+(prompt -> diagrama)" de la app (Ctrl+I) para abrirlos con un click.
+(Si no tenes acceso al filesystem, simplemente devolve el texto y el
+usuario lo pega/guarda el mismo.)
+
+LOOP CON LA APP (si el dev server esta corriendo en localhost:5173):
+- Si editas un .txt de /diagrams, la app que lo tiene abierto se actualiza
+  SOLA (auto-reload). Asi vas "dibujando" el diseno mientras codeas.
+- Tambien podes hacer push por HTTP en vez de escribir el archivo:
+    POST http://localhost:5173/__diagrams/push   body JSON {name, source}
+- El usuario puede exportar la "spec viva" a design.md (menu file): leela para
+  saber el estado del diseno. Marca los nodos implementados con `status: done`
+  y vincula el codigo con `file:`; lo que el usuario quiera nuevo viene como
+  `request: true` (esos son tu lista de tareas).
+
+----------------------------------------------------------------
+REGLAS DE SALIDA (IMPORTANTES)
+----------------------------------------------------------------
+1. El contenido del archivo es UNICAMENTE el texto del diagrama. Nada de
+   explicaciones, ni titulos extra, ni comentarios fuera del bloque.
+2. No envuelvas el contenido en ``` ni en bloques de codigo markdown.
+3. Una sentencia por linea.
+4. Los IDs de nodo son cortos, sin espacios (ej: User, AuthAPI, DB1).
+   El texto visible va en `label:` (puede tener espacios y acentos).
+5. Si un concepto se repite, usa SIEMPRE el mismo ID (asi se conecta solo).
+6. Preferí 5-25 nodos. Si el dominio es grande, agrupá con `group`.
+7. Incluí siempre una linea `title:` (se usa como nombre en la biblioteca).
+
+----------------------------------------------------------------
+ESTRUCTURA GENERAL
+----------------------------------------------------------------
+Linea 1 (opcional): el tipo de diagrama
+    type: flowchart      (por defecto si se omite)
+    type: sequence       (diagrama de secuencia)
+    type: er             (entidad-relacion / esquema de base de datos)
+
+Opcional:
+    title: Mi Diagrama           # titulo que se dibuja arriba
+    direction TB                 # orientacion: TB (arriba-abajo), LR
+                                 # (izq-der), BT, RL. Aplica a flowchart y er.
+
+Luego: nodos y conexiones (ver cada tipo abajo).
+
+================================================================
+ 1) FLOWCHART  (el mas comun: cajas + flechas, arquitecturas, flujos)
+================================================================
+
+NODOS
+-----
+    A                                  # nodo simple (rectangulo), id=A, label=A
+    API [label: Servicio de Auth]      # id corto, texto visible en label
+    DB  [shape: cylinder, label: Postgres]
+
+Atributos de nodo (dentro de [ ], separados por coma):
+    label: <texto>            # texto visible (con espacios/acentos)
+    shape: <forma>            # ver formas abajo (default rectangle)
+    color: #rrggbb            # color de relleno (hex)
+    textColor: #rrggbb        # color del texto
+    strokeColor: #rrggbb      # color del borde
+    strokeWidth: 0..6         # grosor del borde
+    icon: <nombre>            # icono (ver lista abajo)
+    labels: tag1; tag2        # etiquetas semanticas (ver abajo), separadas por ;
+    quantity: <numero>        # badge numerico
+    progress: true            # checkbox de progreso (true/false/done/pending)
+    status: todo|wip|done|blocked   # estado de implementacion (punto de color)
+    request: true             # "pedido": algo nuevo a implementar (cinta)
+    file: src/a.ts; src/b.tsx # archivo(s) del repo que implementan este nodo
+
+Formas (shape):
+    rectangle (default), ellipse, circle, diamond, hexagon, cylinder
+    - diamond: ideal para decisiones / condiciones
+    - cylinder: bases de datos / storage
+    - circle/ellipse: inicio / fin / estados
+
+Iconos utiles (icon):
+    user, database, server, globe, lock, api, code, file
+    aws-ec2, aws-rds, aws-s3, aws-lambda, aws-cloudfront, aws-elb, aws-elasticache
+
+CONEXIONES (edges)
+------------------
+    A > B               # flecha dirigida A hacia B
+    A <> B              # bidireccional
+    A -- B              # sin direccion (linea)
+    A > B: texto        # con etiqueta sobre la flecha
+    A, B > C, D         # cartesiano: crea A>C, A>D, B>C, B>D (4 flechas)
+
+Atributos de edge (en [ ] despues de la etiqueta):
+    A > B: error [style: dashed, color: #ef4444]
+    style: solid | dashed | dotted
+    color: #rrggbb
+
+Connect condicional (transiciona solo al cumplirse una accion/condicion):
+    A > B: hizo login [conditional: true]
+
+GRUPOS / MODULOS
+----------------
+    group "Backend" {
+      API
+      DB [shape: cylinder]
+      API > DB
+    }
+Los nodos dentro de las llaves pertenecen al grupo (se dibuja un recuadro).
+
+ETIQUETAS SEMANTICAS (labels)  -> sirven para el "prompt generator" interno
+-------------------------------------------------------------------------
+    Nodo [labels: feature]
+Valores: feature, constraint, goal, risk, todo, idea, question, blocked,
+         done, input, output, decision, ai-decision, ai-decision-user
+(podes inventar etiquetas custom; tambien se aceptan)
+
+EJEMPLO COMPLETO (flowchart)
+----------------------------
+type: flowchart
+title: Login con OAuth
+direction TB
+
+User [shape: circle, label: Usuario]
+Web [label: Frontend Web, icon: globe]
+Auth [label: Auth Service, icon: lock]
+DB [shape: cylinder, label: Usuarios, icon: aws-rds]
+Check [shape: diamond, label: credenciales ok?]
+
+User > Web: abre la app
+Web > Auth: pide login
+Auth > DB: valida usuario
+DB > Auth: resultado
+Auth > Check
+Check > Web: si [color: #16a34a]
+Check > Web: no [style: dashed, color: #ef4444]
+
+================================================================
+ 2) SEQUENCE  (type: sequence)
+================================================================
+Mensajes entre actores en orden temporal. El orden de las lineas importa.
+
+    type: sequence
+    title: Checkout
+
+    User > Carrito: agrega item
+    Carrito > Pagos: cobrar
+    Pagos --> Carrito: aprobado        # --> = respuesta (linea punteada)
+    Carrito > User: confirmacion
+    note over Carrito, Pagos: timeout de 30s
+
+Reglas: `A > B: mensaje` (flecha solida), `A --> B: mensaje` (respuesta),
+`note over A, B: texto` (nota sobre uno o varios actores).
+
+================================================================
+ 3) ER  (type: er)  esquema de base de datos
+================================================================
+Cada tabla es MULTILINEA: `Nombre {` y una columna por linea.
+Columna: `nombre tipo` + opcional `pk` (primary key) y/o `fk` (foreign key).
+
+    type: er
+    title: Blog
+    direction LR
+
+    User {
+      id uuid pk
+      email string
+      name string
+    }
+    Post {
+      id uuid pk
+      author_id uuid fk
+      title string
+    }
+
+    User.id > Post.author_id        # relacion 1:N
+    # A.col <> B.col   = N:M
+    # A.col -- B.col   = 1:1
+
+================================================================
+ RESUMEN PARA EL MODELO
+================================================================
+- Elegi el `type` segun lo que pida el usuario (flujo/arquitectura ->
+  flowchart; interaccion temporal -> sequence; datos/tablas -> er).
+- IDs cortos sin espacios; el texto en `label:`.
+- Reutiliza IDs para conectar; agrupa con `group` si hace falta.
+- Devolve SOLO el texto del diagrama, sin ``` ni explicaciones.

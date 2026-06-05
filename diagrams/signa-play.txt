@@ -1,0 +1,60 @@
+type: flowchart
+title: Signa Play - Plan MVP
+direction TB
+
+Start [shape: circle, label: Signa Play (MVP), color: #dbeafe, status: done]
+Stack [label: Stack Expo - web + Android primero (iOS despues), status: done]
+Monorepo [label: Scaffold monorepo (Expo Router + TS), status: done, file: signa-play/package.json; signa-play/apps/app/metro.config.js; signa-play/apps/app/app/_layout.tsx]
+Design [label: Design system infantil (mascota / audio / accesibilidad), status: done, file: signa-play/packages/shared/src/theme.ts; signa-play/apps/app/components/BigButton.tsx; signa-play/apps/app/components/Mascot.tsx; signa-play/apps/app/hooks/useSpeak.ts]
+Contenido [shape: cylinder, label: Modelo de contenido (curriculo L1 + 5 params LSM), status: done, file: signa-play/packages/shared/src/content.ts; signa-play/packages/shared/src/data/lessons.ts; signa-play/packages/shared/src/data/l5_animales.ts; signa-play/packages/shared/src/library.ts]
+Formato [shape: cylinder, label: Formato 3D de senas - USD (lsm_pn ya exporta) a glTF runtime, status: done, file: lsm_pn/usd/writer.py]
+Pipeline [shape: cylinder, label: Pipeline sintetico senas 3D (lsm_pn a glTF + fallback skeleton), status: done, labels: feature, file: signa-play/tools/generate_signs.py; signa-play/tools/backends/skeleton.py; signa-play/tools/backends/avatar.py; signa-play/tools/blender_usd_to_gltf.py; signa-play/apps/app/lib/signAssets.ts]
+Video [label: Video del signer real (grabacion en camara), status: todo, labels: feature]
+FlowStudio [shape: cylinder, label: Flow Studio - mocap markerless del video a USD avatar animado, status: todo, labels: feature, file: lsm_pn/usd/reader.py; scripts/maya_scene_io.py]
+MocapGlb [shape: cylinder, label: USD mocap a glTF/GLB (Blender, reusa el converter), status: todo, labels: feature, file: signa-play/tools/blender_usd_to_gltf.py]
+Catalogo [label: Catalogo y navegacion de lecciones, status: done, labels: feature, file: content/SignaPlay_Content_Bible_v1.pdf; content/SignaPlay_Sprint1_Paquete_L5_Animales.pdf; signa-play/apps/app/app/leccion/[id].tsx; signa-play/apps/app/lib/catalog.ts; signa-play/apps/app/components/LessonCard.tsx]
+Player [label: Reproductor de sena 3D (USD a glTF + texto + audio), status: todo, labels: feature]
+Alcance [label: ALCANCE MVP - adjunta features aca, color: #fef9c3, status: todo]
+Abecedario [label: Abecedario (dactilologia A-Z), status: todo, labels: feature]
+Vocabulario [label: Vocabulario basico (numeros / colores / animales), status: todo, labels: feature]
+Juegos [label: Mini-juegos / quiz, status: todo, labels: feature]
+Recognize [shape: cylinder, label: Servicio recognize (FastAPI sobre lsm_pn), status: todo, labels: feature, file: lsm_pn/recognize/matcher.py]
+Camara [label: Captura de camara (web getUserMedia + Android Expo Camera), labels: feature, status: todo, request: true]
+Landmarks [label: Extraccion landmarks MediaPipe (cliente), status: todo, request: true]
+Match [label: Match + feedback al nino (correcto / reintenta), status: todo, labels: feature]
+Progreso [shape: cylinder, label: Persistencia de progreso, status: todo]
+Gamificacion [label: Niveles / estrellas / racha, status: todo, labels: feature]
+Onboarding [label: Onboarding + control parental, status: todo]
+QA [label: QA con ninos + accesibilidad, status: todo]
+Deploy [label: Build y deploy (web hosting + Android Play Store via EAS), status: todo]
+Listo [shape: circle, label: Signa Play v1 listo (web + Android), color: #dcfce7, status: todo]
+
+Start > Stack
+Stack > Monorepo
+Monorepo > Design
+Design > Contenido
+Contenido > Catalogo
+Contenido > Formato
+Contenido > Pipeline
+Formato > Pipeline
+Pipeline > Player
+Video > FlowStudio
+FlowStudio > MocapGlb
+MocapGlb > Player
+Catalogo > Player
+Player > Alcance
+Alcance > Abecedario
+Alcance > Vocabulario
+Alcance > Juegos
+Contenido > Recognize
+Player > Camara
+Camara > Landmarks
+Landmarks > Recognize
+Recognize > Match
+Match > Progreso
+Alcance > Progreso
+Progreso > Gamificacion
+Gamificacion > Onboarding
+Onboarding > QA
+QA > Deploy
+Deploy > Listo
