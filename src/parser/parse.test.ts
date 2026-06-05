@@ -86,6 +86,38 @@ describe('parse: atributos de nodo', () => {
   });
 });
 
+describe('parse: robustez de atributos', () => {
+  it('coma dentro de parentesis no parte el label', () => {
+    const r = parse('A [label: USD a glTF (Blender, reusa el converter), status: todo]\n');
+    expect(r.errors).toEqual([]);
+    expect((r.ast as FlowchartAST).nodes[0].label).toBe('USD a glTF (Blender, reusa el converter)');
+    expect((r.ast as FlowchartAST).nodes[0].status).toBe('todo');
+  });
+
+  it('coma en label sin parentesis: separa solo cuando sigue clave:', () => {
+    const r = parse('A [label: 1. Empeza aca, segui las flechas, color: #dbeafe]\n');
+    expect(r.errors).toEqual([]);
+    expect((r.ast as FlowchartAST).nodes[0].label).toBe('1. Empeza aca, segui las flechas');
+    expect((r.ast as FlowchartAST).nodes[0].color).toBe('#dbeafe');
+  });
+
+  it('brackets anidados en una ruta ([id].tsx) no rompen el parseo', () => {
+    const r = parse('A [label: Catalogo, file: app/leccion/[id].tsx; app/lib/x.ts]\n');
+    expect(r.errors).toEqual([]);
+    expect((r.ast as FlowchartAST).nodes[0].files).toEqual([
+      'app/leccion/[id].tsx',
+      'app/lib/x.ts',
+    ]);
+  });
+
+  it('colon dentro del label no se confunde con otra clave', () => {
+    const r = parse('A [label: Menu file: exportar spec, status: done]\n');
+    expect(r.errors).toEqual([]);
+    expect((r.ast as FlowchartAST).nodes[0].label).toBe('Menu file: exportar spec');
+    expect((r.ast as FlowchartAST).nodes[0].status).toBe('done');
+  });
+});
+
 describe('parse: edges', () => {
   it('tipos de arrow', () => {
     expect(flow('A <> B\n').edges[0].arrow).toBe('bidirectional');

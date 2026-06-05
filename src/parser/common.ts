@@ -5,12 +5,22 @@ export function stripComment(line: string): string {
   return idx === -1 ? line : line.slice(0, idx);
 }
 
+// Profundidad de anidamiento: trackeamos brackets [] Y parentesis () asi un
+// valor de atributo con comas/colons dentro de parentesis (ej "(Blender, x)")
+// o brackets (ej rutas "[id].tsx") no se parte en el separador.
+function isOpen(c: string): boolean {
+  return c === '[' || c === '(';
+}
+function isClose(c: string): boolean {
+  return c === ']' || c === ')';
+}
+
 export function indexOfOutsideBrackets(s: string, ch: string): number {
   let depth = 0;
   for (let i = 0; i < s.length; i++) {
     const c = s[i];
-    if (c === '[') depth++;
-    else if (c === ']') depth = Math.max(0, depth - 1);
+    if (isOpen(c)) depth++;
+    else if (isClose(c)) depth = Math.max(0, depth - 1);
     else if (depth === 0 && c === ch) return i;
   }
   return -1;
@@ -22,8 +32,8 @@ export function splitOutsideBrackets(s: string, ch: string): string[] {
   let start = 0;
   for (let i = 0; i < s.length; i++) {
     const c = s[i];
-    if (c === '[') depth++;
-    else if (c === ']') depth = Math.max(0, depth - 1);
+    if (isOpen(c)) depth++;
+    else if (isClose(c)) depth = Math.max(0, depth - 1);
     else if (depth === 0 && c === ch) {
       parts.push(s.slice(start, i));
       start = i + 1;
@@ -43,11 +53,11 @@ export function findArrowOperator(s: string): ArrowMatch | null {
   let depth = 0;
   for (let i = 0; i < s.length; i++) {
     const c = s[i];
-    if (c === '[') {
+    if (isOpen(c)) {
       depth++;
       continue;
     }
-    if (c === ']') {
+    if (isClose(c)) {
       depth = Math.max(0, depth - 1);
       continue;
     }
@@ -65,13 +75,37 @@ export function findArrowOperator(s: string): ArrowMatch | null {
   return null;
 }
 
+// "clave:" al arranque de un segmento = bareword (sin espacios) seguido de colon.
+const ATTR_KEY_AHEAD = /^\s*[A-Za-z_][A-Za-z0-9_-]*\s*:/;
+
+// Parte una lista de atributos por comas, pero una coma a profundidad 0 separa
+// SOLO si lo que sigue es "clave:". Asi un label con comas ("a, b, c") no se
+// fragmenta, mientras "label: a, b, color: red" si separa en label y color.
+// (brackets/parentesis tambien protegen, via isOpen/isClose.)
+function splitAttrList(s: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let start = 0;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (isOpen(c)) depth++;
+    else if (isClose(c)) depth = Math.max(0, depth - 1);
+    else if (depth === 0 && c === ',' && ATTR_KEY_AHEAD.test(s.slice(i + 1))) {
+      parts.push(s.slice(start, i));
+      start = i + 1;
+    }
+  }
+  parts.push(s.slice(start));
+  return parts;
+}
+
 export function parseAttrs(
   s: string,
   lineNum: number,
   errors: ParseError[],
 ): Record<string, string> {
   const result: Record<string, string> = {};
-  for (const part of splitOutsideBrackets(s, ',')) {
+  for (const part of splitAttrList(s)) {
     const trimmed = part.trim();
     if (!trimmed) continue;
     const colonIdx = trimmed.indexOf(':');

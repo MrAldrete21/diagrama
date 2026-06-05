@@ -315,14 +315,41 @@ function parseNodeDecl(
 ): NodeDecl | null {
   const trimmed = entry.trim();
   if (!trimmed) return null;
-  const match = trimmed.match(/^([^\s[]+)(?:\s*\[([^\]]+)\])?$/);
-  if (!match) {
+  const idMatch = trimmed.match(/^([^\s[]+)/);
+  if (!idMatch) {
     errors.push({ line: lineNum, message: `No se puede parsear: ${entry}` });
     return null;
   }
-  const [, id, attrPart] = match;
+  const id = idMatch[1];
   const decl: NodeDecl = { id };
-  if (!attrPart) return decl;
+  const rest = trimmed.slice(id.length).trim();
+  if (!rest) return decl;
+
+  // El bloque de atributos es [ ... ]. Matcheamos el ] que balancea al primer [
+  // por profundidad (soporta brackets anidados como rutas .../[id].tsx); debe
+  // cerrar al final del entry o el resto es basura.
+  if (rest[0] !== '[') {
+    errors.push({ line: lineNum, message: `No se puede parsear: ${entry}` });
+    return null;
+  }
+  let bracketDepth = 0;
+  let closeIdx = -1;
+  for (let i = 0; i < rest.length; i++) {
+    if (rest[i] === '[') bracketDepth++;
+    else if (rest[i] === ']') {
+      bracketDepth--;
+      if (bracketDepth === 0) {
+        closeIdx = i;
+        break;
+      }
+    }
+  }
+  if (closeIdx !== rest.length - 1) {
+    errors.push({ line: lineNum, message: `No se puede parsear: ${entry}` });
+    return null;
+  }
+  const attrPart = rest.slice(1, closeIdx);
+  if (!attrPart.trim()) return decl;
 
   if (!attrPart.includes(':')) {
     decl.label = attrPart.trim();
