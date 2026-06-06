@@ -51,8 +51,9 @@ Partes de abajo quedaron viejas. Estado real:
     modelo pide. Modelo de datos: **listas -> elementos -> archivos** (`BuzonData` en
     `types.ts`), serializado base64-JSON en el attr DSL **`buzon`** (logica pura en
     `buzon/buzon.ts`: encode/decode/normalize, `computeBuzonStatus`, `buzonProgress`,
-    `listComplete`/`itemComplete`, `seedBuzon`). **Doble-click** sobre el nodo abre el modal:
-    crear listas, agregar elementos, y subir contenido a cada elemento (boton o drag&drop ->
+    `listComplete`/`itemComplete`, `seedBuzon`). **Doble-click** sobre el nodo abre un
+    **panel del lado derecho** (`solver-panel`, NO modal) con cada lista como **seccion
+    colapsable**: crear listas, agregar elementos, y subir contenido a cada elemento (boton o drag&drop ->
     `POST /__upload` a `progreso/<nodeId>/<listId>/`, preview embebido por `/__raw`).
     **Cascada de completitud**: elemento completo = tiene >=1 archivo; lista completa = todos
     sus elementos; **nodo `status: done` automatico cuando todas las listas estan completas**

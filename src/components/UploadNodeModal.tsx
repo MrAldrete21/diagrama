@@ -13,11 +13,11 @@ const ROOT_KEY = 'diagrama:filesRoot';
 
 type Preview = { path: string; kind: AssetKind } | null;
 
-// Interfaz del nodo "buzon de progreso" (shape: upload). Checklist anidado:
-// listas -> elementos -> archivos. El usuario crea listas, agrega elementos y
-// sube contenido a cada uno. Un elemento se completa con >=1 archivo; una lista
-// se completa cuando todos sus elementos estan; el nodo pasa a `done` (status,
-// calculado en App) cuando todas las listas estan completas.
+// Interfaz del nodo "buzon de progreso" (shape: upload). Panel del lado derecho
+// (no modal) organizado en SECCIONES: cada lista es una seccion colapsable con
+// sus elementos. Checklist anidado listas -> elementos -> archivos. Un elemento
+// se completa con >=1 archivo; una lista cuando todos sus elementos estan; el
+// nodo pasa a `done` (status, en App) cuando todas las listas estan completas.
 export function UploadNodeModal({
   node,
   onSetBuzon,
@@ -35,7 +35,7 @@ export function UploadNodeModal({
     }
   }, []);
 
-  // Estado local = fuente de verdad mientras el modal esta abierto. Se siembra
+  // Estado local = fuente de verdad mientras el panel esta abierto. Se siembra
   // una vez (migra `items:` viejos a una lista "Pedidos").
   const [data, setData] = useState<BuzonData>(() => seedBuzon(node.buzon, node.items));
   const dataRef = useRef(data);
@@ -44,17 +44,24 @@ export function UploadNodeModal({
   const [preview, setPreview] = useState<Preview>(null);
   const [busyItem, setBusyItem] = useState<string | null>(null);
   const [dragItem, setDragItem] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const [err, setErr] = useState('');
   const [newListName, setNewListName] = useState('');
 
-  // Solo cambia el estado local (para tipear sin spamear undo).
   const setLocal = (next: BuzonData) => setData(next);
-  // Persiste al DSL (estructura: agregar/quitar/subir).
   const commit = (next: BuzonData) => {
     setData(next);
     onSetBuzon(node.id, next);
   };
   const commitNow = () => onSetBuzon(node.id, dataRef.current);
+
+  const toggleCollapse = (listId: string) =>
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(listId)) next.delete(listId);
+      else next.add(listId);
+      return next;
+    });
 
   const mapLists = (fn: (l: BuzonList) => BuzonList): BuzonData => ({
     lists: data.lists.map(fn),
@@ -102,7 +109,6 @@ export function UploadNodeModal({
       setErr('no se pudo subir (¿esta corriendo el dev server?)');
       return;
     }
-    // Reconstruye desde el estado actual (puede haber cambiado mientras subia).
     const cur = dataRef.current;
     const next: BuzonData = {
       lists: cur.lists.map((l) =>
@@ -120,25 +126,33 @@ export function UploadNodeModal({
   };
 
   const prog = buzonProgress(data);
+  const allDone = prog.totalLists > 0 && prog.doneLists === prog.totalLists;
 
   return (
-    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
-      <div className="modal buzon-modal" onClick={(e) => e.stopPropagation()}>
-        <header className="modal-header">
-          <h2>{node.label || node.id} — progreso</h2>
-          <span className="buzon-overall">
-            {prog.totalLists > 0 ? `${prog.doneLists}/${prog.totalLists} listas` : 'sin listas'}
-            {prog.totalLists > 0 && prog.doneLists === prog.totalLists ? ' ✓ done' : ''}
+    <>
+      <div
+        className="solver-panel buzon-panel"
+        role="dialog"
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <header className="solver-header">
+          <span className="solver-title" title={node.label || node.id}>
+            {node.label || node.id} · progreso
           </span>
-          <button type="button" className="btn btn-ghost modal-close" onClick={onClose} aria-label="Cerrar">
+          <span className={`buzon-overall ${allDone ? 'is-done' : ''}`}>
+            {prog.totalLists > 0 ? `${prog.doneLists}/${prog.totalLists}` : '—'}
+            {allDone ? ' ✓' : ''}
+          </span>
+          <button type="button" className="solver-close" onClick={onClose} aria-label="cerrar" tabIndex={-1}>
             x
           </button>
         </header>
 
-        <div className="modal-body buzon-body">
+        <div className="buzon-body">
           {data.lists.length === 0 && (
             <div className="buzon-empty">
-              Todavia no hay listas. Crea una abajo (ej "Senas L5", "Capturas"…) y
+              Sin secciones todavia. Crea una abajo (ej "Senas L5", "Capturas"…) y
               agregale elementos para subir contenido.
             </div>
           )}
@@ -146,9 +160,18 @@ export function UploadNodeModal({
           {data.lists.map((list) => {
             const done = listComplete(list);
             const ld = list.items.filter(itemComplete).length;
+            const isCollapsed = collapsed.has(list.id);
             return (
               <section key={list.id} className={`buzon-list ${done ? 'is-done' : ''}`}>
                 <div className="buzon-list-head">
+                  <button
+                    type="button"
+                    className="buzon-collapse"
+                    onClick={() => toggleCollapse(list.id)}
+                    title={isCollapsed ? 'expandir' : 'colapsar'}
+                  >
+                    {isCollapsed ? '▸' : '▾'}
+                  </button>
                   <span className={`buzon-check ${done ? 'is-on' : ''}`}>{done ? '✓' : ''}</span>
                   <input
                     className="buzon-list-name"
@@ -163,52 +186,55 @@ export function UploadNodeModal({
                   <button
                     type="button"
                     className="files-row-x"
-                    title="borrar lista"
+                    title="borrar seccion"
                     onClick={() => removeList(list.id)}
                   >
                     x
                   </button>
                 </div>
 
-                {list.items.map((item) => (
-                  <ItemRow
-                    key={item.id}
-                    root={root}
-                    item={item}
-                    busy={busyItem === item.id}
-                    drag={dragItem === item.id}
-                    onRename={(name) => renameItem(list.id, item.id, name)}
-                    onRenameCommit={commitNow}
-                    onRemove={() => removeItem(list.id, item.id)}
-                    onUpload={(files) => void uploadTo(list.id, item, files)}
-                    onDragState={(on) => setDragItem(on ? item.id : null)}
-                    onRemoveFile={(p) => removeFile(list.id, item.id, p)}
-                    onPreview={(p, kind) => setPreview({ path: p, kind })}
-                  />
-                ))}
-
-                <AddItem onAdd={(name) => addItem(list.id, name)} />
+                {!isCollapsed && (
+                  <>
+                    {list.items.map((item) => (
+                      <ItemRow
+                        key={item.id}
+                        root={root}
+                        item={item}
+                        busy={busyItem === item.id}
+                        drag={dragItem === item.id}
+                        onRename={(name) => renameItem(list.id, item.id, name)}
+                        onRenameCommit={commitNow}
+                        onRemove={() => removeItem(list.id, item.id)}
+                        onUpload={(files) => void uploadTo(list.id, item, files)}
+                        onDragState={(on) => setDragItem(on ? item.id : null)}
+                        onRemoveFile={(p) => removeFile(list.id, item.id, p)}
+                        onPreview={(p, kind) => setPreview({ path: p, kind })}
+                      />
+                    ))}
+                    <AddItem onAdd={(name) => addItem(list.id, name)} />
+                  </>
+                )}
               </section>
             );
           })}
 
           {err && <div className="files-panel-err">{err}</div>}
+        </div>
 
-          <div className="buzon-add-list">
-            <input
-              className="conditional-input-field"
-              placeholder="nombre de la nueva lista…"
-              value={newListName}
-              onChange={(e) => setNewListName(e.target.value)}
-              onKeyDown={(e) => {
-                e.stopPropagation();
-                if (e.key === 'Enter') addList();
-              }}
-            />
-            <button type="button" className="btn btn-primary" onClick={addList}>
-              + lista
-            </button>
-          </div>
+        <div className="buzon-add-list">
+          <input
+            className="conditional-input-field"
+            placeholder="nueva seccion…"
+            value={newListName}
+            onChange={(e) => setNewListName(e.target.value)}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === 'Enter') addList();
+            }}
+          />
+          <button type="button" className="btn btn-primary" onClick={addList}>
+            + seccion
+          </button>
         </div>
       </div>
 
@@ -228,7 +254,7 @@ export function UploadNodeModal({
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -288,7 +314,7 @@ function ItemRow({
           disabled={busy}
           onClick={() => inputRef.current?.click()}
         >
-          {busy ? 'subiendo…' : '+ subir'}
+          {busy ? '…' : '+ subir'}
         </button>
         <input
           ref={inputRef}

@@ -3235,6 +3235,7 @@ function App() {
           if (!upNode) return null;
           return (
             <UploadNodeModal
+              key={upNode.id}
               node={upNode}
               onSetBuzon={handleSetBuzon}
               onClose={() => setUploadNodeId(null)}

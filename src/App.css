@@ -3171,23 +3171,39 @@ kbd {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
 }
 
-/* ===== Modal del buzon de progreso (nodo shape: upload) ===== */
-.buzon-modal {
-  width: min(680px, 94vw);
-}
+/* ===== Panel del buzon de progreso (nodo shape: upload), lado derecho ===== */
 .buzon-overall {
   margin-left: auto;
-  margin-right: 10px;
+  margin-right: 8px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-muted);
 }
+.buzon-overall.is-done {
+  color: #22c55e;
+}
 .buzon-body {
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-height: 70vh;
+  gap: 10px;
   overflow-y: auto;
+  padding-right: 2px;
+}
+.buzon-collapse {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+}
+.buzon-collapse:hover {
+  color: var(--text);
 }
 .buzon-empty {
   font-size: 12.5px;
