@@ -46,17 +46,23 @@ Partes de abajo quedaron viejas. Estado real:
     el nodo tiene avance + su status). Subir/preview es DEV-ONLY (endpoints del plugin);
     en prod el panel es solo-lectura. Helpers en `repo/files.ts`: `uploadAsset`,
     `rawUrl`, `assetKind`/`AssetKind`. `/progreso/` esta en `.gitignore`.
-  - **Nodo "buzon de progreso" (`shape: upload`)**: tipo de nodo con interfaz propia
-    (`components/UploadNodeModal`) para que el MODELO pida archivos y el USUARIO los suba.
-    El modelo lista los pedidos en `items:` (un pedido por `;`); el usuario hace
-    **doble-click** sobre el nodo -> abre el modal: muestra los pedidos (`items`), los
-    archivos subidos (`assets`) con thumbnail/preview, y una dropzone (drag&drop o click)
-    que sube via `POST /__upload` y vincula a `assets:` (`handleSetAssets`). El nodo se ve
-    como card dashed con icono de subida + contador "N subidos · M pedidos"
-    (`UploadContents` en `Node.tsx`, sizing en `layout.ts`). Crear: tool **Buzon** en la
-    Palette, pestania **"buzon (progreso)"** del CustomBlockMenu (Shift+3,
-    `CustomBlockApply` kind `upload`), o DSL directo. `handleNodeDoubleClick` detecta
-    `shape==='upload'` y abre `uploadNodeId` en vez de editar el label.
+  - **Nodo "buzon de progreso" (`shape: upload`) = checklist anidado**: tipo de nodo con
+    interfaz propia (`components/UploadNodeModal`) para que el usuario suba archivos que el
+    modelo pide. Modelo de datos: **listas -> elementos -> archivos** (`BuzonData` en
+    `types.ts`), serializado base64-JSON en el attr DSL **`buzon`** (logica pura en
+    `buzon/buzon.ts`: encode/decode/normalize, `computeBuzonStatus`, `buzonProgress`,
+    `listComplete`/`itemComplete`, `seedBuzon`). **Doble-click** sobre el nodo abre el modal:
+    crear listas, agregar elementos, y subir contenido a cada elemento (boton o drag&drop ->
+    `POST /__upload` a `progreso/<nodeId>/<listId>/`, preview embebido por `/__raw`).
+    **Cascada de completitud**: elemento completo = tiene >=1 archivo; lista completa = todos
+    sus elementos; **nodo `status: done` automatico cuando todas las listas estan completas**
+    (`handleSetBuzon` escribe `buzon` + recalcula `status`). El nodo renderiza progreso
+    "X/Y listas · Z/W elementos" (`UploadContents`). Migracion: si el nodo tiene `items:`
+    viejos (pedidos), `seedBuzon` los vuelve una lista "Pedidos". `buildDevPrompt` emite el
+    checklist con completitud (el modelo ve que subiste). Crear: tool **Buzon** en la Palette,
+    pestania **"buzon (progreso)"** del CustomBlockMenu (Shift+3, `CustomBlockApply` kind
+    `upload`, su textarea siembra `items:`), o DSL directo. `handleNodeDoubleClick` detecta
+    `shape==='upload'` y abre `uploadNodeId`.
   - **Indicador de sync** (`syncStatus` + `.sync-badge`, fixed top-center): muestra si el
     diagrama esta guardado en su .txt (`✓ x.txt` / `guardando…` / `sin vincular` / error).
     Lo maneja el effect de auto-guardado (match por title).

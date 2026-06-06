@@ -22,6 +22,8 @@ import { LinterPanel } from './components/LinterPanel';
 import { SnapshotPanel } from './components/SnapshotPanel';
 import { FilesPanel } from './components/FilesPanel';
 import { UploadNodeModal } from './components/UploadNodeModal';
+import { encodeBuzon, computeBuzonStatus } from './buzon/buzon';
+import type { BuzonData } from './parser/types';
 import { RepoFilePicker } from './components/RepoFilePicker';
 import { lintDiagram } from './lint/lintDiagram';
 import { ContextMenu } from './components/ContextMenu';
@@ -1617,6 +1619,20 @@ function App() {
     handleSetTests(testsEditId, tests.join('; '));
     setTestsEditId(null);
     (document.activeElement as HTMLElement | null)?.blur?.();
+  };
+
+  // Guarda el checklist del buzon (attr `buzon` base64-JSON) y recalcula el
+  // `status` del nodo en cascada (done si todas las listas completas, wip si hay
+  // algo, todo si vacio). Lo usa UploadNodeModal.
+  const handleSetBuzon = (id: string, data: BuzonData) => {
+    const prev = useDocStore.getState().source;
+    const parsed = parse(prev);
+    if (parsed.ast.type !== 'flowchart') return;
+    const node = parsed.ast.nodes.find((n) => n.id === id);
+    if (!node) return;
+    let next = updateNodeAttrInPlace(prev, id, node.sourceLine, 'buzon', encodeBuzon(data));
+    next = updateNodeAttrInPlace(next, id, node.sourceLine, 'status', computeBuzonStatus(data));
+    setSource(next);
   };
 
   // Setea (o limpia) la evidencia/avance del nodo (attr `assets`, ; separados).
@@ -3220,7 +3236,7 @@ function App() {
           return (
             <UploadNodeModal
               node={upNode}
-              onSetAssets={handleSetAssets}
+              onSetBuzon={handleSetBuzon}
               onClose={() => setUploadNodeId(null)}
             />
           );

@@ -1,21 +1,30 @@
 import { useMemo, useRef, useState } from 'react';
-import type { DiagramNode } from '../parser/types';
+import type { DiagramNode, BuzonData, BuzonList, BuzonItem } from '../parser/types';
 import { uploadAsset, rawUrl, assetKind, type AssetKind } from '../repo/files';
+import {
+  seedBuzon,
+  newId,
+  itemComplete,
+  listComplete,
+  buzonProgress,
+} from '../buzon/buzon';
 
 const ROOT_KEY = 'diagrama:filesRoot';
 
 type Preview = { path: string; kind: AssetKind } | null;
 
-// Interfaz del nodo "buzon de progreso" (shape: upload). El modelo pide archivos
-// (los escribe como `items:` via el loop) y el usuario los sube aca: se guardan en
-// el repo del proyecto y se vinculan al nodo (attr `assets:`). Preview embebido.
+// Interfaz del nodo "buzon de progreso" (shape: upload). Checklist anidado:
+// listas -> elementos -> archivos. El usuario crea listas, agrega elementos y
+// sube contenido a cada uno. Un elemento se completa con >=1 archivo; una lista
+// se completa cuando todos sus elementos estan; el nodo pasa a `done` (status,
+// calculado en App) cuando todas las listas estan completas.
 export function UploadNodeModal({
   node,
-  onSetAssets,
+  onSetBuzon,
   onClose,
 }: {
   node: DiagramNode;
-  onSetAssets: (nodeId: string, paths: string[]) => void;
+  onSetBuzon: (nodeId: string, data: BuzonData) => void;
   onClose: () => void;
 }) {
   const root = useMemo(() => {
@@ -26,138 +35,179 @@ export function UploadNodeModal({
     }
   }, []);
 
-  const requests = node.items ?? [];
-  const assets = node.assets ?? [];
+  // Estado local = fuente de verdad mientras el modal esta abierto. Se siembra
+  // una vez (migra `items:` viejos a una lista "Pedidos").
+  const [data, setData] = useState<BuzonData>(() => seedBuzon(node.buzon, node.items));
+  const dataRef = useRef(data);
+  dataRef.current = data;
 
-  const [busy, setBusy] = useState(false);
-  const [drag, setDrag] = useState(false);
-  const [err, setErr] = useState('');
   const [preview, setPreview] = useState<Preview>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [busyItem, setBusyItem] = useState<string | null>(null);
+  const [dragItem, setDragItem] = useState<string | null>(null);
+  const [err, setErr] = useState('');
+  const [newListName, setNewListName] = useState('');
 
-  const doUpload = async (list: FileList | File[]) => {
+  // Solo cambia el estado local (para tipear sin spamear undo).
+  const setLocal = (next: BuzonData) => setData(next);
+  // Persiste al DSL (estructura: agregar/quitar/subir).
+  const commit = (next: BuzonData) => {
+    setData(next);
+    onSetBuzon(node.id, next);
+  };
+  const commitNow = () => onSetBuzon(node.id, dataRef.current);
+
+  const mapLists = (fn: (l: BuzonList) => BuzonList): BuzonData => ({
+    lists: data.lists.map(fn),
+  });
+  const inList = (listId: string, fn: (l: BuzonList) => BuzonList) =>
+    mapLists((l) => (l.id === listId ? fn(l) : l));
+  const inItem = (listId: string, itemId: string, fn: (it: BuzonItem) => BuzonItem) =>
+    inList(listId, (l) => ({ ...l, items: l.items.map((it) => (it.id === itemId ? fn(it) : it)) }));
+
+  const addList = () => {
+    const name = newListName.trim() || `Lista ${data.lists.length + 1}`;
+    commit({ lists: [...data.lists, { id: newId('l'), name, items: [] }] });
+    setNewListName('');
+  };
+  const removeList = (listId: string) =>
+    commit({ lists: data.lists.filter((l) => l.id !== listId) });
+  const renameList = (listId: string, name: string) =>
+    setLocal(inList(listId, (l) => ({ ...l, name })));
+
+  const addItem = (listId: string, name: string) => {
+    const n = name.trim();
+    if (!n) return;
+    commit(inList(listId, (l) => ({ ...l, items: [...l.items, { id: newId('i'), name: n, files: [] }] })));
+  };
+  const removeItem = (listId: string, itemId: string) =>
+    commit(inList(listId, (l) => ({ ...l, items: l.items.filter((it) => it.id !== itemId) })));
+  const renameItem = (listId: string, itemId: string, name: string) =>
+    setLocal(inItem(listId, itemId, (it) => ({ ...it, name })));
+
+  const removeFile = (listId: string, itemId: string, path: string) =>
+    commit(inItem(listId, itemId, (it) => ({ ...it, files: it.files.filter((f) => f !== path) })));
+
+  const uploadTo = async (listId: string, item: BuzonItem, list: FileList | File[]) => {
     const files = Array.from(list);
     if (files.length === 0) return;
     setErr('');
-    setBusy(true);
+    setBusyItem(item.id);
     const added: string[] = [];
     for (const file of files) {
-      const res = await uploadAsset(root, `progreso/${node.id}`, file);
+      const res = await uploadAsset(root, `progreso/${node.id}/${listId}`, file);
       if (res.ok && res.path) added.push(res.path);
     }
-    setBusy(false);
+    setBusyItem(null);
     if (added.length === 0) {
       setErr('no se pudo subir (¿esta corriendo el dev server?)');
       return;
     }
-    const next = [...assets, ...added.filter((p) => !assets.includes(p))];
-    onSetAssets(node.id, next);
+    // Reconstruye desde el estado actual (puede haber cambiado mientras subia).
+    const cur = dataRef.current;
+    const next: BuzonData = {
+      lists: cur.lists.map((l) =>
+        l.id !== listId
+          ? l
+          : {
+              ...l,
+              items: l.items.map((it) =>
+                it.id !== item.id ? it : { ...it, files: [...it.files, ...added.filter((p) => !it.files.includes(p))] },
+              ),
+            },
+      ),
+    };
+    commit(next);
   };
 
-  const unlink = (path: string) => onSetAssets(node.id, assets.filter((p) => p !== path));
+  const prog = buzonProgress(data);
 
   return (
     <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
-      <div className="modal upload-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal buzon-modal" onClick={(e) => e.stopPropagation()}>
         <header className="modal-header">
           <h2>{node.label || node.id} — progreso</h2>
-          <button
-            type="button"
-            className="btn btn-ghost modal-close"
-            onClick={onClose}
-            aria-label="Cerrar"
-          >
+          <span className="buzon-overall">
+            {prog.totalLists > 0 ? `${prog.doneLists}/${prog.totalLists} listas` : 'sin listas'}
+            {prog.totalLists > 0 && prog.doneLists === prog.totalLists ? ' ✓ done' : ''}
+          </span>
+          <button type="button" className="btn btn-ghost modal-close" onClick={onClose} aria-label="Cerrar">
             x
           </button>
         </header>
 
-        <div className="modal-body upload-modal-body">
-          {requests.length > 0 && (
-            <section className="upload-section">
-              <div className="upload-section-title">el modelo te pide</div>
-              <ul className="upload-requests">
-                {requests.map((r, i) => (
-                  <li key={i} className="upload-request">
-                    {r}
-                  </li>
-                ))}
-              </ul>
-            </section>
+        <div className="modal-body buzon-body">
+          {data.lists.length === 0 && (
+            <div className="buzon-empty">
+              Todavia no hay listas. Crea una abajo (ej "Senas L5", "Capturas"…) y
+              agregale elementos para subir contenido.
+            </div>
           )}
 
-          <section className="upload-section">
-            <div className="upload-section-title">
-              archivos subidos ({assets.length})
-            </div>
-            {assets.length === 0 ? (
-              <div className="upload-empty">Todavia no subiste nada.</div>
-            ) : (
-              <div className="upload-grid">
-                {assets.map((p) => {
-                  const kind = assetKind(p);
-                  const viewable = kind === 'video' || kind === 'image' || kind === 'pdf' || kind === 'audio';
-                  return (
-                    <div key={p} className="upload-asset">
-                      <button
-                        type="button"
-                        className="upload-asset-thumb"
-                        disabled={!viewable}
-                        onClick={() => viewable && setPreview({ path: p, kind })}
-                        title={viewable ? 'ver' : p}
-                      >
-                        {kind === 'image' ? (
-                          <img src={rawUrl(root, p)} alt={p} />
-                        ) : (
-                          <span className={`upload-asset-kind kind-${kind}`}>{kindLabel(kind)}</span>
-                        )}
-                      </button>
-                      <div className="upload-asset-foot">
-                        <span className="upload-asset-name" title={p}>
-                          {p.split('/').pop()}
-                        </span>
-                        <button
-                          type="button"
-                          className="files-row-x"
-                          title="desvincular (no borra el archivo)"
-                          onClick={() => unlink(p)}
-                        >
-                          x
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
+          {data.lists.map((list) => {
+            const done = listComplete(list);
+            const ld = list.items.filter(itemComplete).length;
+            return (
+              <section key={list.id} className={`buzon-list ${done ? 'is-done' : ''}`}>
+                <div className="buzon-list-head">
+                  <span className={`buzon-check ${done ? 'is-on' : ''}`}>{done ? '✓' : ''}</span>
+                  <input
+                    className="buzon-list-name"
+                    value={list.name}
+                    onChange={(e) => renameList(list.id, e.target.value)}
+                    onBlur={commitNow}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  />
+                  <span className="buzon-list-prog">
+                    {ld}/{list.items.length}
+                  </span>
+                  <button
+                    type="button"
+                    className="files-row-x"
+                    title="borrar lista"
+                    onClick={() => removeList(list.id)}
+                  >
+                    x
+                  </button>
+                </div>
+
+                {list.items.map((item) => (
+                  <ItemRow
+                    key={item.id}
+                    root={root}
+                    item={item}
+                    busy={busyItem === item.id}
+                    drag={dragItem === item.id}
+                    onRename={(name) => renameItem(list.id, item.id, name)}
+                    onRenameCommit={commitNow}
+                    onRemove={() => removeItem(list.id, item.id)}
+                    onUpload={(files) => void uploadTo(list.id, item, files)}
+                    onDragState={(on) => setDragItem(on ? item.id : null)}
+                    onRemoveFile={(p) => removeFile(list.id, item.id, p)}
+                    onPreview={(p, kind) => setPreview({ path: p, kind })}
+                  />
+                ))}
+
+                <AddItem onAdd={(name) => addItem(list.id, name)} />
+              </section>
+            );
+          })}
 
           {err && <div className="files-panel-err">{err}</div>}
 
-          <div
-            className={`upload-dropzone ${drag ? 'is-drag' : ''}`}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDrag(true);
-            }}
-            onDragLeave={() => setDrag(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDrag(false);
-              void doUpload(e.dataTransfer.files);
-            }}
-            onClick={() => inputRef.current?.click()}
-          >
-            {busy ? 'subiendo…' : 'arrastra archivos aca, o hace click para elegir'}
+          <div className="buzon-add-list">
             <input
-              ref={inputRef}
-              type="file"
-              multiple
-              hidden
-              onChange={(e) => {
-                if (e.target.files && e.target.files.length > 0) void doUpload(e.target.files);
-                e.target.value = '';
+              className="conditional-input-field"
+              placeholder="nombre de la nueva lista…"
+              value={newListName}
+              onChange={(e) => setNewListName(e.target.value)}
+              onKeyDown={(e) => {
+                e.stopPropagation();
+                if (e.key === 'Enter') addList();
               }}
             />
+            <button type="button" className="btn btn-primary" onClick={addList}>
+              + lista
+            </button>
           </div>
         </div>
       </div>
@@ -182,21 +232,141 @@ export function UploadNodeModal({
   );
 }
 
-function kindLabel(kind: AssetKind): string {
-  switch (kind) {
-    case 'video':
-      return 'VIDEO';
-    case 'pdf':
-      return 'PDF';
-    case 'audio':
-      return 'AUDIO';
-    case 'code':
-      return 'CODE';
-    case 'doc':
-      return 'DOC';
-    default:
-      return 'FILE';
-  }
+function ItemRow({
+  root,
+  item,
+  busy,
+  drag,
+  onRename,
+  onRenameCommit,
+  onRemove,
+  onUpload,
+  onDragState,
+  onRemoveFile,
+  onPreview,
+}: {
+  root: string;
+  item: BuzonItem;
+  busy: boolean;
+  drag: boolean;
+  onRename: (name: string) => void;
+  onRenameCommit: () => void;
+  onRemove: () => void;
+  onUpload: (files: FileList | File[]) => void;
+  onDragState: (on: boolean) => void;
+  onRemoveFile: (path: string) => void;
+  onPreview: (path: string, kind: AssetKind) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const done = itemComplete(item);
+  return (
+    <div
+      className={`buzon-item ${done ? 'is-done' : ''} ${drag ? 'is-drag' : ''}`}
+      onDragOver={(e) => {
+        e.preventDefault();
+        onDragState(true);
+      }}
+      onDragLeave={() => onDragState(false)}
+      onDrop={(e) => {
+        e.preventDefault();
+        onDragState(false);
+        onUpload(e.dataTransfer.files);
+      }}
+    >
+      <div className="buzon-item-head">
+        <span className={`buzon-check ${done ? 'is-on' : ''}`}>{done ? '✓' : ''}</span>
+        <input
+          className="buzon-item-name"
+          value={item.name}
+          onChange={(e) => onRename(e.target.value)}
+          onBlur={onRenameCommit}
+          onKeyDown={(e) => e.stopPropagation()}
+        />
+        <button
+          type="button"
+          className="buzon-upload-btn"
+          disabled={busy}
+          onClick={() => inputRef.current?.click()}
+        >
+          {busy ? 'subiendo…' : '+ subir'}
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          multiple
+          hidden
+          onChange={(e) => {
+            if (e.target.files && e.target.files.length > 0) onUpload(e.target.files);
+            e.target.value = '';
+          }}
+        />
+        <button type="button" className="files-row-x" title="borrar elemento" onClick={onRemove}>
+          x
+        </button>
+      </div>
+      {item.files.length > 0 && (
+        <div className="buzon-files">
+          {item.files.map((p) => {
+            const kind = assetKind(p);
+            const viewable = kind === 'video' || kind === 'image' || kind === 'pdf' || kind === 'audio';
+            return (
+              <span key={p} className="buzon-file">
+                {kind === 'image' ? (
+                  <img
+                    className="buzon-file-thumb"
+                    src={rawUrl(root, p)}
+                    alt={p}
+                    onClick={() => onPreview(p, kind)}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className="buzon-file-chip"
+                    disabled={!viewable}
+                    onClick={() => viewable && onPreview(p, kind)}
+                    title={p}
+                  >
+                    {p.split('/').pop()}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="buzon-file-x"
+                  title="quitar archivo"
+                  onClick={() => onRemoveFile(p)}
+                >
+                  ×
+                </button>
+              </span>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AddItem({ onAdd }: { onAdd: (name: string) => void }) {
+  const [name, setName] = useState('');
+  const submit = () => {
+    if (!name.trim()) return;
+    onAdd(name);
+    setName('');
+  };
+  return (
+    <div className="buzon-add-item">
+      <input
+        className="buzon-add-item-input"
+        placeholder="+ elemento (ej: video de la seña HOLA)"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          e.stopPropagation();
+          if (e.key === 'Enter') submit();
+        }}
+      />
+    </div>
+  );
 }
 
 function PreviewMedia({ root, preview }: { root: string; preview: { path: string; kind: AssetKind } }) {

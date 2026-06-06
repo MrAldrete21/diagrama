@@ -7,6 +7,7 @@ import type {
   EdgeStyle,
   ListStyle,
   NodeStatus,
+  BuzonData,
   FlowchartAST,
   SequenceAST,
   ErAST,
@@ -40,6 +41,7 @@ export type LayoutNode = {
   files?: string[];
   tests?: string[];
   assets?: string[];
+  buzon?: BuzonData;
   expanded?: boolean;
   x: number;
   y: number;
@@ -423,6 +425,7 @@ function layoutFlowchart(
     if (astNode.files && astNode.files.length > 0) node.files = astNode.files;
     if (astNode.tests && astNode.tests.length > 0) node.tests = astNode.tests;
     if (astNode.assets && astNode.assets.length > 0) node.assets = astNode.assets;
+    if (astNode.buzon) node.buzon = astNode.buzon;
     if (astNode.shape === 'note' && expandedNoteIds.has(astNode.id))
       node.expanded = true;
     if (astNode.groupId) node.groupId = astNode.groupId;

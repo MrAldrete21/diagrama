@@ -23,8 +23,11 @@ un nodo `shape: upload` y pone tus pedidos en `items:` (un pedido por `;`):
 
     Evidencia [shape: upload, label: Subir progreso, items: video de la seña HOLA; captura de la pantalla X]
 
-El usuario hace doble-click en ese nodo, sube los archivos, y quedan en `assets:`.
-La proxima vez que leas el diagrama vas a ver esos `assets:` -> sabes que ya los subio.
+El usuario hace doble-click en ese nodo: es un CHECKLIST (listas -> elementos ->
+archivos). Tus `items:` aparecen como una lista para que suba contenido a cada uno.
+Cuando completa todo, el nodo pasa solo a `status: done`. El detalle del progreso
+queda en el attr `buzon` (base64-JSON, no lo edites). Cuando vuelvas a leer el
+diagrama vas a ver el progreso de cada elemento -> sabes que ya subio.
 
 ## Escribir (al implementar)
 En el nodo: pone `status: done`, agrega `file:` con lo que tocaste, y quita

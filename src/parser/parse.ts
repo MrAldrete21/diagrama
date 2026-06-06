@@ -19,6 +19,7 @@ import type {
   ErColumn,
   ErRelation,
   NodeStatus,
+  BuzonData,
 } from './types';
 import { SHAPES, EDGE_STYLES, LIST_STYLES, NODE_STATUSES } from './types';
 import {
@@ -30,6 +31,7 @@ import {
   detectDiagramType,
 } from './common';
 import type { ArrowMatch } from './common';
+import { decodeBuzon } from '../buzon/buzon';
 
 const DIRECTIONS: ReadonlySet<Direction> = new Set(['TB', 'LR', 'BT', 'RL']);
 const SHAPE_SET: ReadonlySet<Shape> = new Set(SHAPES);
@@ -80,6 +82,7 @@ type NodeDecl = {
   files?: string[];
   tests?: string[];
   assets?: string[];
+  buzon?: BuzonData;
 };
 
 function parseFlowchart(source: string): ParseResult {
@@ -436,6 +439,9 @@ function parseNodeDecl(
       .map((s) => s.trim())
       .filter(Boolean);
   }
+  if (attrs.buzon !== undefined) {
+    decl.buzon = decodeBuzon(attrs.buzon);
+  }
   if (attrs.width) {
     const w = parseFloat(attrs.width);
     if (Number.isFinite(w) && w > 0) decl.width = w;
@@ -485,6 +491,7 @@ function upsertNode(
     if (decl.files !== undefined) existing.files = decl.files;
     if (decl.tests !== undefined) existing.tests = decl.tests;
     if (decl.assets !== undefined) existing.assets = decl.assets;
+    if (decl.buzon !== undefined) existing.buzon = decl.buzon;
     if (decl.width !== undefined) existing.width = decl.width;
     if (decl.height !== undefined) existing.height = decl.height;
     if (groupId && !existing.groupId) existing.groupId = groupId;
@@ -514,6 +521,7 @@ function upsertNode(
     if (decl.files !== undefined) node.files = decl.files;
     if (decl.tests !== undefined) node.tests = decl.tests;
     if (decl.assets !== undefined) node.assets = decl.assets;
+    if (decl.buzon !== undefined) node.buzon = decl.buzon;
     if (decl.width) node.width = decl.width;
     if (decl.height) node.height = decl.height;
     if (groupId) node.groupId = groupId;

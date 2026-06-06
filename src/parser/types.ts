@@ -1,5 +1,14 @@
 export type Direction = 'TB' | 'LR' | 'BT' | 'RL';
 
+// === Buzon de progreso (shape: upload) ===
+// Un elemento de una lista: nombre + archivos subidos (rutas relativas al repo).
+export type BuzonItem = { id: string; name: string; files: string[] };
+// Una lista del buzon: nombre + elementos. Completa = todos sus elementos tienen
+// al menos un archivo.
+export type BuzonList = { id: string; name: string; items: BuzonItem[] };
+// El checklist completo del nodo. Nodo done = todas las listas completas.
+export type BuzonData = { lists: BuzonList[] };
+
 export type Shape =
   | 'rectangle'
   | 'ellipse'
@@ -77,6 +86,9 @@ export type DiagramNode = {
   /** Evidencia / avance subido por el usuario (videos, imagenes, docs). Attr DSL
    * `assets`, separados por ;. Rutas relativas al repo del proyecto (filesRoot). */
   assets?: string[];
+  /** Checklist del nodo "buzon de progreso" (shape: upload). Listas -> elementos
+   * con archivos subibles. Se serializa base64-JSON en el attr DSL `buzon`. */
+  buzon?: BuzonData;
   groupId?: string;
   sourceLine: number;
 };

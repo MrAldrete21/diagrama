@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import type { LayoutNode } from '../layout/layout';
 import { IconAt, isIconKey } from './icons';
 import { labelDef } from './labels';
+import { buzonProgress } from '../buzon/buzon';
 
 export type ResizeCorner = 'nw' | 'ne' | 'se' | 'sw';
 
@@ -546,12 +547,16 @@ function ImageContents({ node }: { node: LayoutNode }) {
   );
 }
 
-// Nodo "buzon de progreso" (shape: upload): icono de subida + label + contador
-// de archivos subidos / pedidos por el modelo. Doble-click abre su interfaz.
+// Nodo "buzon de progreso" (shape: upload): icono de subida + label + progreso
+// del checklist (elementos y listas completas). Doble-click abre su interfaz.
 function UploadContents({ node }: { node: LayoutNode }) {
   const w = node.width;
-  const uploaded = node.assets?.length ?? 0;
-  const requested = node.items?.length ?? 0;
+  const prog = node.buzon ? buzonProgress(node.buzon) : null;
+  const countText = prog
+    ? prog.totalLists > 0
+      ? `${prog.doneLists}/${prog.totalLists} listas · ${prog.doneItems}/${prog.totalItems}`
+      : 'sin listas — doble-click'
+    : 'doble-click para empezar';
   return (
     <>
       <g transform={`translate(${w / 2 - 9}, 14)`} className="node-upload-icon">
@@ -593,8 +598,7 @@ function UploadContents({ node }: { node: LayoutNode }) {
         fontSize={11}
         fontFamily="system-ui, -apple-system, sans-serif"
       >
-        {uploaded} subido{uploaded === 1 ? '' : 's'}
-        {requested > 0 ? ` · ${requested} pedido${requested === 1 ? '' : 's'}` : ''}
+        {countText}
       </text>
     </>
   );

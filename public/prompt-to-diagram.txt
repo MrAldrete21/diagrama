@@ -97,9 +97,14 @@ Formas (shape):
     - diamond: ideal para decisiones / condiciones
     - cylinder: bases de datos / storage
     - circle/ellipse: inicio / fin / estados
-    - upload: "buzon de progreso". Nodo donde el USUARIO sube archivos que vos le
-      pedis. Pone en `items:` lo que necesitas (un pedido por linea/;); el usuario
-      sube y queda en `assets:`. Doble-click sobre el nodo abre la interfaz de subida.
+    - upload: "buzon de progreso". Checklist donde el USUARIO sube archivos que vos
+      le pedis. Estructura: listas -> elementos -> archivos. Doble-click sobre el
+      nodo abre la interfaz (crear listas, agregar elementos, subir contenido). Un
+      elemento se completa al subir un archivo; la lista cuando todos sus elementos
+      estan; el nodo pasa a status: done solo cuando TODAS las listas estan completas.
+      Para PEDIR: pone en `items:` lo que necesitas (un pedido por ;) -> el nodo los
+      ofrece como una lista "Pedidos" para que el usuario suba. El checklist completo
+      se guarda en el attr `buzon` (base64-JSON, NO lo edites a mano).
       Ej: PruebaSenas [shape: upload, label: Subir senas, items: video HOLA; video GRACIAS]
 
 Iconos utiles (icon):

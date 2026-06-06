@@ -4,6 +4,7 @@
 
 import type { FlowchartAST, DiagramNode } from '../parser/types';
 import { groupAst } from '../solver/groupAst';
+import { listComplete, itemComplete } from '../buzon/buzon';
 import {
   resolveLabelDescription,
   labelDef,
@@ -80,6 +81,17 @@ function componentLine(n: DiagramNode, resolveName: (id: string) => string): str
   }
   if (n.assets && n.assets.length > 0) {
     line += '\n' + `  - evidencia/avance: ${n.assets.join('; ')}`;
+  }
+  if (n.buzon && n.buzon.lists.length > 0) {
+    line += '\n' + '  - buzon de progreso:';
+    for (const l of n.buzon.lists) {
+      const ld = l.items.filter(itemComplete).length;
+      line += '\n' + `    - ${l.name} (${ld}/${l.items.length})${listComplete(l) ? ' ✓' : ''}`;
+      for (const it of l.items) {
+        const v = it.files.length > 0 ? `${it.files.join('; ')} ✓` : 'pendiente';
+        line += '\n' + `      - ${it.name}: ${v}`;
+      }
+    }
   }
   if (n.constraints && n.constraints.length > 0) {
     const names = n.constraints.map(resolveName).filter(Boolean);

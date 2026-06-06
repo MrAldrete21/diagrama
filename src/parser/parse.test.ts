@@ -44,6 +44,13 @@ describe('parse: atributos de nodo', () => {
     expect(n.assets).toEqual(['progreso/A/v.mp4']);
   });
 
+  it('attr buzon: decodifica el checklist base64-JSON', () => {
+    const data = { lists: [{ id: 'l1', name: 'Senas', items: [{ id: 'i1', name: 'HOLA', files: [] }] }] };
+    const enc = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    const n = flow(`A [shape: upload, buzon: ${enc}]\n`).nodes[0];
+    expect(n.buzon).toEqual(data);
+  });
+
   it('labels separados por ;', () => {
     expect(flow('A [labels: goal; feature]\n').nodes[0].labels).toEqual(['goal', 'feature']);
   });

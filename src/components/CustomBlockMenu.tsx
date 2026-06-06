@@ -239,10 +239,11 @@ export function CustomBlockMenu({
           {tab === 'upload' && (
             <section>
               <p className="custom-block-hint">
-                Buzon de progreso: doble-click sobre el nodo abre su interfaz para
-                SUBIR archivos (videos, imagenes, docs). Aca podes listar lo que el
-                modelo te pide (un pedido por linea) — tambien lo completa el modelo
-                via el loop. Ctrl+Enter aplica.
+                Buzon de progreso: un checklist (listas → elementos → archivos).
+                Doble-click sobre el nodo abre la interfaz para crear listas y SUBIR
+                contenido. Aca podes sembrar los primeros elementos (uno por linea) —
+                arrancan como lista "Pedidos". El nodo pasa a "done" cuando completas
+                todas las listas. Ctrl+Enter aplica.
               </p>
               <textarea
                 className="block-items-input"
