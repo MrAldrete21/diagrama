@@ -79,6 +79,7 @@ type NodeDecl = {
   request?: boolean;
   files?: string[];
   tests?: string[];
+  assets?: string[];
 };
 
 function parseFlowchart(source: string): ParseResult {
@@ -429,6 +430,12 @@ function parseNodeDecl(
       .map((s) => s.trim())
       .filter(Boolean);
   }
+  if (attrs.assets !== undefined) {
+    decl.assets = attrs.assets
+      .split(';')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
   if (attrs.width) {
     const w = parseFloat(attrs.width);
     if (Number.isFinite(w) && w > 0) decl.width = w;
@@ -477,6 +484,7 @@ function upsertNode(
     if (decl.request !== undefined) existing.request = decl.request;
     if (decl.files !== undefined) existing.files = decl.files;
     if (decl.tests !== undefined) existing.tests = decl.tests;
+    if (decl.assets !== undefined) existing.assets = decl.assets;
     if (decl.width !== undefined) existing.width = decl.width;
     if (decl.height !== undefined) existing.height = decl.height;
     if (groupId && !existing.groupId) existing.groupId = groupId;
@@ -505,6 +513,7 @@ function upsertNode(
     if (decl.request !== undefined) node.request = decl.request;
     if (decl.files !== undefined) node.files = decl.files;
     if (decl.tests !== undefined) node.tests = decl.tests;
+    if (decl.assets !== undefined) node.assets = decl.assets;
     if (decl.width) node.width = decl.width;
     if (decl.height) node.height = decl.height;
     if (groupId) node.groupId = groupId;

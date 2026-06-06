@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { LayoutNode } from '../layout/layout';
 import { IconAt, isIconKey } from './icons';
 import { labelDef } from './labels';
@@ -145,17 +145,18 @@ export function Node({
         ));
       })()}
       {node.request && <RequestRibbon width={node.width} />}
-      {node.files && node.files.length > 0 && (
-        <FileBadge x={node.width - 17} y={node.height - 17} count={node.files.length} files={node.files} />
-      )}
-      {node.tests && node.tests.length > 0 && (
-        <TestsBadge
-          x={node.files && node.files.length > 0 ? node.width - 36 : node.width - 17}
-          y={node.height - 17}
-          count={node.tests.length}
-          tests={node.tests}
-        />
-      )}
+      {(() => {
+        // Badges esquina inferior-derecha: se apilan hacia la izquierda.
+        const y = node.height - 17;
+        const slots: Array<(x: number) => ReactNode> = [];
+        if (node.files?.length)
+          slots.push((x) => <FileBadge key="f" x={x} y={y} count={node.files!.length} files={node.files!} />);
+        if (node.tests?.length)
+          slots.push((x) => <TestsBadge key="t" x={x} y={y} count={node.tests!.length} tests={node.tests!} />);
+        if (node.assets?.length)
+          slots.push((x) => <AssetsBadge key="a" x={x} y={y} count={node.assets!.length} assets={node.assets!} />);
+        return slots.map((render, i) => render(node.width - 17 - 19 * i));
+      })()}
       {/* Estado de implementacion: pill obvia con texto + color, abajo del nodo */}
       {node.status && <StatusPill cx={node.width / 2} y={node.height + 4} status={node.status} />}
       {showHandles && onResizeStart && node.shape !== 'note' && (
@@ -367,6 +368,33 @@ function TestsBadge({
       <line className="node-tests-flask" x1={4.5} y1={1.5} x2={7.5} y2={1.5} />
       {count > 1 && (
         <text className="node-tests-count" x={12} y={5} fontSize={8} fontWeight={700}>
+          {count}
+        </text>
+      )}
+    </g>
+  );
+}
+
+// Badge de evidencia/avance: archivos subidos por el usuario (attr `assets`).
+// Icono de claqueta/pelicula (videos son el caso tipico de progreso).
+function AssetsBadge({
+  x,
+  y,
+  count,
+  assets,
+}: {
+  x: number;
+  y: number;
+  count: number;
+  assets: string[];
+}) {
+  return (
+    <g className="node-assets-badge" transform={`translate(${x}, ${y})`} pointerEvents="none">
+      <title>{`evidencia / avance:\n${assets.join('\n')}`}</title>
+      <rect className="node-assets-film" x={1.5} y={3} width={9} height={8} rx={1.2} fill="none" />
+      <path className="node-assets-play" d="M4.5 5.5 L7.5 7 L4.5 8.5 Z" />
+      {count > 1 && (
+        <text className="node-assets-count" x={12} y={6} fontSize={8} fontWeight={700}>
           {count}
         </text>
       )}

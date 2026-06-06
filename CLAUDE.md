@@ -30,6 +30,22 @@ Partes de abajo quedaron viejas. Estado real:
     Linter: feature `status:done` sin `tests:` -> warning. (Lo TDD-especifico del pedido
     --- attr `tdd`, `criteria`, endpoint `/__tests`+reporter, scope "rojo" --- NO se
     implemento; ver `public/funciones-app.md` para el reporte al proyecto externo.)
+  - **Attr `assets:` + panel "Archivos / Progreso"** (`components/FilesPanel`, boton en
+    ShortcutBar, icono carpeta-play). `assets:` es gemelo de `file:`/`tests:` (rutas
+    separadas por `;`, relativas al repo del proyecto = `diagrama:filesRoot`):
+    evidencia/avance que el usuario SUBE (videos, imagenes, docs). El panel (lado
+    derecho, clase `solver-panel`) lista por nodo sus `file:`/`tests:`/`assets:`
+    ordenados, marca cuales existen en el repo (cruza contra `GET /__files`), y permite
+    **subir** (boton o drag&drop sobre la card) -> `POST /__upload` (binario crudo,
+    query `root&dir&name`) guarda en `<root>/progreso/<nodeId>/` y devuelve la ruta
+    relativa, que se vincula al nodo via `handleSetAssets` -> `updateNodeAttrInPlace(...,
+    'assets', ...)`. Preview embebido (lightbox) de video/imagen/pdf/audio servido por
+    `GET /__raw?root=&path=` (content-type por extension). Badge en el nodo
+    (`AssetsBadge`, claqueta cyan, a la izq de file/tests). `buildDevPrompt` lo emite
+    como `- evidencia/avance: ...` (el modelo no ve el contenido del video pero sabe que
+    el nodo tiene avance + su status). Subir/preview es DEV-ONLY (endpoints del plugin);
+    en prod el panel es solo-lectura. Helpers en `repo/files.ts`: `uploadAsset`,
+    `rawUrl`, `assetKind`/`AssetKind`. `/progreso/` esta en `.gitignore`.
   - **Indicador de sync** (`syncStatus` + `.sync-badge`, fixed top-center): muestra si el
     diagrama esta guardado en su .txt (`✓ x.txt` / `guardando…` / `sin vincular` / error).
     Lo maneja el effect de auto-guardado (match por title).
@@ -302,6 +318,10 @@ src/
 - `quantity` (numero) → badge azul
 - `noPrompt` (`true`/`1`) → excluye el nodo (y sus edges) del prompt generator.
   Tecla `N` togglea. Muestra simbolo rojo (prohibido) en el nodo. `promptHidden` en el AST.
+- `file` (rutas separadas por `;`) → archivos del repo que implementan el nodo (badge clip)
+- `tests` (rutas separadas por `;`) → archivos de test del nodo (badge matraz)
+- `assets` (rutas separadas por `;`) → evidencia/avance subido (videos/imagenes/docs);
+  badge claqueta. Se sube/ve desde el panel "Archivos / Progreso" (ShortcutBar)
 - `width`, `height` (override manual)
 
 **Sintaxis DSL completa**:

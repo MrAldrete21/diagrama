@@ -5,33 +5,48 @@ direction TB
 Start [shape: circle, label: Signa Play (MVP), color: #dbeafe, status: done]
 Stack [label: Stack Expo - web + Android primero (iOS despues), status: done]
 Monorepo [label: Scaffold monorepo (Expo Router + TS), status: done, file: signa-play/package.json; signa-play/apps/app/metro.config.js; signa-play/apps/app/app/_layout.tsx]
+Tests [label: Tests TDD (Jest + ts-jest) - logica pura, status: done, file: signa-play/apps/app/jest.config.js; signa-play/apps/app/tsconfig.jest.json; signa-play/apps/app/__tests__/content.test.ts; signa-play/apps/app/__tests__/catalog.test.ts]
 Design [label: Design system infantil (mascota / audio / accesibilidad), status: done, file: signa-play/packages/shared/src/theme.ts; signa-play/apps/app/components/BigButton.tsx; signa-play/apps/app/components/Mascot.tsx; signa-play/apps/app/hooks/useSpeak.ts]
-Contenido [shape: cylinder, label: Modelo de contenido (curriculo L1 + 5 params LSM), status: done, file: signa-play/packages/shared/src/content.ts; signa-play/packages/shared/src/data/lessons.ts; signa-play/packages/shared/src/data/l5_animales.ts; signa-play/packages/shared/src/library.ts]
+Contenido [shape: cylinder, label: Modelo de contenido (curriculo L1 + 5 params LSM), status: done, file: signa-play/packages/shared/src/content.ts; signa-play/packages/shared/src/data/lessons.ts; signa-play/packages/shared/src/data/l5_animales.ts; signa-play/packages/shared/src/library.ts, tests: signa-play/apps/app/__tests__/content.test.ts]
 Formato [shape: cylinder, label: Formato 3D de senas - USD (lsm_pn ya exporta) a glTF runtime, status: done, file: lsm_pn/usd/writer.py]
-Pipeline [shape: cylinder, label: Pipeline sintetico senas 3D (lsm_pn a glTF + fallback skeleton), status: done, labels: feature, file: signa-play/tools/generate_signs.py; signa-play/tools/backends/skeleton.py; signa-play/tools/backends/avatar.py; signa-play/tools/blender_usd_to_gltf.py; signa-play/apps/app/lib/signAssets.ts]
-Video [label: Video del signer real (grabacion en camara), status: todo, labels: feature]
+Pipeline [shape: cylinder, label: Pipeline sintetico senas 3D (lsm_pn a glTF + fallback skeleton), status: done, labels: feature, file: signa-play/tools/generate_signs.py; signa-play/tools/backends/skeleton.py; signa-play/tools/backends/avatar.py; signa-play/tools/blender_usd_to_gltf.py; signa-play/apps/app/lib/signAssets.ts, tests: signa-play/apps/app/__tests__/signAssets.test.ts]
+Video [label: Video del signer real (grabacion en camara), status: wip, labels: feature]
 FlowStudio [shape: cylinder, label: Flow Studio - mocap markerless del video a USD avatar animado, status: todo, labels: feature, file: lsm_pn/usd/reader.py; scripts/maya_scene_io.py]
 MocapGlb [shape: cylinder, label: USD mocap a glTF/GLB (Blender, reusa el converter), status: todo, labels: feature, file: signa-play/tools/blender_usd_to_gltf.py]
-Catalogo [label: Catalogo y navegacion de lecciones, status: done, labels: feature, file: content/SignaPlay_Content_Bible_v1.pdf; content/SignaPlay_Sprint1_Paquete_L5_Animales.pdf; signa-play/apps/app/app/leccion/[id].tsx; signa-play/apps/app/lib/catalog.ts; signa-play/apps/app/components/LessonCard.tsx]
-Player [label: Reproductor de sena 3D (USD a glTF + texto + audio), status: todo, labels: feature]
+Catalogo [label: Catalogo y navegacion de lecciones, status: done, labels: feature, file: content/SignaPlay_Content_Bible_v1.pdf; content/SignaPlay_Sprint1_Paquete_L5_Animales.pdf; signa-play/apps/app/app/leccion/[id].tsx; signa-play/apps/app/lib/catalog.ts; signa-play/apps/app/components/LessonCard.tsx, tests: signa-play/apps/app/__tests__/catalog.test.ts]
+Player [label: Reproductor de sena 3D (USD a glTF + texto + audio), status: wip, labels: feature, file: signa-play/apps/app/app/sena/[id].tsx; signa-play/apps/app/lib/player/view.ts; signa-play/apps/app/components/SignModel3D.tsx, tests: signa-play/apps/app/__tests__/player.test.ts]
 Alcance [label: ALCANCE MVP - adjunta features aca, color: #fef9c3, status: todo]
 Abecedario [label: Abecedario (dactilologia A-Z), status: todo, labels: feature]
 Vocabulario [label: Vocabulario basico (numeros / colores / animales), status: todo, labels: feature]
-Juegos [label: Mini-juegos / quiz, status: todo, labels: feature]
+Juegos [label: Mini-juegos / quiz (Toca Lexsi 2-AFC/3-AFC), status: done, labels: feature, file: signa-play/apps/app/lib/activities/quiz.ts, tests: signa-play/apps/app/__tests__/activities.test.ts]
 Recognize [shape: cylinder, label: Servicio recognize (FastAPI sobre lsm_pn), status: todo, labels: feature, file: lsm_pn/recognize/matcher.py]
-Camara [label: Captura de camara (web getUserMedia + Android Expo Camera), status: todo, labels: feature]
-Landmarks [label: Extraccion landmarks MediaPipe (cliente), status: todo]
+Camara [label: Captura de camara (web getUserMedia + Android Expo Camera), status: done, labels: feature, file: signa-play/apps/app/app/practica.tsx; signa-play/apps/app/app.json]
+Landmarks [label: Extraccion landmarks MediaPipe (cliente), status: done, labels: feature, file: signa-play/apps/app/lib/vision/extractor.ts; signa-play/apps/app/lib/vision/extractor.native.ts; signa-play/apps/app/lib/vision/types.ts, tests: signa-play/apps/app/__tests__/vision.test.ts]
 Match [label: Match + feedback al nino (correcto / reintenta), status: done, labels: feature, file: signa-play/apps/app/lib/match/score.ts, tests: signa-play/apps/app/__tests__/match.test.ts]
-Progreso [shape: cylinder, label: Persistencia de progreso, status: todo]
-Gamificacion [label: Niveles / estrellas / racha, status: todo, labels: feature]
+Progreso [shape: cylinder, label: Persistencia de progreso, status: done, file: signa-play/apps/app/lib/progress/model.ts, tests: signa-play/apps/app/__tests__/progress.test.ts]
+Gamificacion [label: Niveles / estrellas / racha, status: done, labels: feature, file: signa-play/apps/app/lib/progress/gamification.ts, tests: signa-play/apps/app/__tests__/gamification.test.ts]
 Onboarding [label: Onboarding + control parental, status: todo]
 QA [label: QA con ninos + accesibilidad, status: todo]
 Deploy [label: Build y deploy (web hosting + Android Play Store via EAS), status: todo]
 Listo [shape: circle, label: Signa Play v1 listo (web + Android), color: #dcfce7, status: todo]
 
+ShotL5 [shape: list, label: Filmar L5 Animales (Sprint 1), listStyle: numbered, items: PERRO; GATO; PEZ; PAJARO; TORTUGA (2 manos); CONEJO (2 manos); RATON; MARIPOSA (2 manos)]
+ShotL1 [shape: list, label: L1 Saludos, items: HOLA; ADIOS; GRACIAS; POR FAVOR; BUENOS DIAS; BUENAS TARDES; BUENAS NOCHES; PERDON]
+ShotL2 [shape: list, label: L2 Identidad, items: NOMBRE; SENA; SORDO; SORDA; PERSONA; LENGUA DE SENAS]
+ShotL3 [shape: list, label: L3 Familia nuclear, items: MAMA; PAPA; HERMANO; HERMANA; HIJO; HIJA; BEBE; FAMILIA]
+ShotL4 [shape: list, label: L4 Familia extensa, items: ABUELO; ABUELA; TIO; TIA; PRIMO; PRIMA]
+ShotL6 [shape: list, label: L6 Animales granja, items: VACA; CABALLO; POLLO; PATO; CERDO; OVEJA]
+ShotL7 [shape: list, label: L7 Emociones, items: FELIZ; TRISTE; ENOJADO; ALEGRE; MIEDO; SORPRESA; ABURRIDO; CONTENTO]
+ShotL8 [shape: list, label: L8 Colores, items: ROJO; AZUL; VERDE; AMARILLO; BLANCO; NEGRO; ROSA; NARANJA]
+ShotL9 [shape: list, label: L9 Alimentos, items: PAN; LECHE; AGUA; GALLETA; MANZANA; HUEVO; FRUTA; JUGO]
+ShotL10 [shape: list, label: L10 Escuela, items: ESCUELA; MAESTRO; ALUMNO; LIBRO; LAPIZ; MOCHILA; CLASE; ESTUDIAR]
+ShotL11 [shape: list, label: L11 Cuerpo, items: MANO; CABEZA; OJO; NARIZ; BOCA; PIE; CABELLO; CARA]
+ShotL12 [shape: list, label: L12 Rutinas, items: MANANA; NOCHE; DORMIR; COMER; BANAR; JUGAR; DESPERTAR; LUNA]
+
 Start > Stack
 Stack > Monorepo
-Monorepo > Design
+Monorepo > Tests
+Tests > Design
 Design > Contenido
 Contenido > Catalogo
 Contenido > Formato
@@ -58,3 +73,15 @@ Gamificacion > Onboarding
 Onboarding > QA
 QA > Deploy
 Deploy > Listo
+Video > ShotL5
+ShotL5 > ShotL1
+ShotL1 > ShotL2
+ShotL2 > ShotL3
+ShotL3 > ShotL4
+ShotL4 > ShotL6
+ShotL6 > ShotL7
+ShotL7 > ShotL8
+ShotL8 > ShotL9
+ShotL9 > ShotL10
+ShotL10 > ShotL11
+ShotL11 > ShotL12

@@ -86,6 +86,10 @@ Atributos de nodo (dentro de [ ], separados por coma):
     status: todo|wip|done|blocked   # estado de implementacion (punto de color)
     request: true             # "pedido": algo nuevo a implementar (cinta)
     file: src/a.ts; src/b.tsx # archivo(s) del repo que implementan este nodo
+    tests: src/a.test.ts      # archivo(s) de test que cubren el nodo
+    assets: progreso/x/v.mp4  # evidencia/avance subido por el usuario (videos,
+                              # imagenes, docs). Lo maneja el panel "Archivos /
+                              # progreso"; en el prompt sale como "evidencia/avance".
 
 Formas (shape):
     rectangle (default), ellipse, circle, diamond, hexagon, cylinder

@@ -20,6 +20,7 @@ import { ImportModal } from './components/ImportModal';
 import { fetchDiagramLibrary } from './diagrams/library';
 import { LinterPanel } from './components/LinterPanel';
 import { SnapshotPanel } from './components/SnapshotPanel';
+import { FilesPanel } from './components/FilesPanel';
 import { RepoFilePicker } from './components/RepoFilePicker';
 import { lintDiagram } from './lint/lintDiagram';
 import { ContextMenu } from './components/ContextMenu';
@@ -129,6 +130,7 @@ function App() {
   const [importOpen, setImportOpen] = useState(false);
   const [linterOpen, setLinterOpen] = useState(false);
   const [snapshotsOpen, setSnapshotsOpen] = useState(false);
+  const [filesPanelOpen, setFilesPanelOpen] = useState(false);
   const [transform, setTransform] = useState<Transform>({ tx: 0, ty: 0, scale: 1 });
   const [recentColors, setRecentColors] = useState<string[]>([]);
   const [menuFocused, setMenuFocused] = useState(false);
@@ -1608,6 +1610,22 @@ function App() {
     (document.activeElement as HTMLElement | null)?.blur?.();
   };
 
+  // Setea (o limpia) la evidencia/avance del nodo (attr `assets`, ; separados).
+  // Lo usa el panel de Archivos / Progreso al subir o desvincular un archivo.
+  const handleSetAssets = (id: string, paths: string[]) => {
+    const prev = useDocStore.getState().source;
+    const parsed = parse(prev);
+    if (parsed.ast.type !== 'flowchart') return;
+    const node = parsed.ast.nodes.find((n) => n.id === id);
+    if (!node) return;
+    const v = paths.map((p) => p.trim()).filter(Boolean).join('; ');
+    setSource(
+      v
+        ? updateNodeAttrInPlace(prev, id, node.sourceLine, 'assets', v)
+        : removeNodeAttrInPlace(prev, id, node.sourceLine, 'assets'),
+    );
+  };
+
   const toggleNoteExpand = (id: string) => {
     setExpandedNoteIds((cur) => {
       const next = new Set(cur);
@@ -2955,6 +2973,7 @@ function App() {
                 onExamples={() => setShowExamples(true)}
                 onLint={() => setLinterOpen((p) => !p)}
                 onSnapshots={() => setSnapshotsOpen((p) => !p)}
+                onFiles={() => setFilesPanelOpen((p) => !p)}
               />
             </div>
           )}
@@ -3158,6 +3177,17 @@ function App() {
           }}
           onDiffPrompt={handleDiffPrompt}
           onClose={() => setSnapshotsOpen(false)}
+        />
+      )}
+      {filesPanelOpen && (
+        <FilesPanel
+          nodes={ast.type === 'flowchart' ? ast.nodes : []}
+          onSetAssets={handleSetAssets}
+          onSelectNode={(id) => {
+            setSelectedIds(new Set([id]));
+            setSelectedEdgeKey(null);
+          }}
+          onClose={() => setFilesPanelOpen(false)}
         />
       )}
       {filesEditId && singleSelectedNode && labelPickerScreenPos && (

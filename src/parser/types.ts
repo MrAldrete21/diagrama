@@ -72,6 +72,9 @@ export type DiagramNode = {
   files?: string[];
   /** Archivos de test que cubren este nodo (attr DSL `tests`, separados por ;). */
   tests?: string[];
+  /** Evidencia / avance subido por el usuario (videos, imagenes, docs). Attr DSL
+   * `assets`, separados por ;. Rutas relativas al repo del proyecto (filesRoot). */
+  assets?: string[];
   groupId?: string;
   sourceLine: number;
 };

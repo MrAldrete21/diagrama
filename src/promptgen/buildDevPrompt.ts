@@ -78,6 +78,9 @@ function componentLine(n: DiagramNode, resolveName: (id: string) => string): str
   if (n.tests && n.tests.length > 0) {
     line += '\n' + `  - tests: ${n.tests.join('; ')}`;
   }
+  if (n.assets && n.assets.length > 0) {
+    line += '\n' + `  - evidencia/avance: ${n.assets.join('; ')}`;
+  }
   if (n.constraints && n.constraints.length > 0) {
     const names = n.constraints.map(resolveName).filter(Boolean);
     if (names.length > 0) line += '\n' + `  - constraints: ${names.join('; ')}`;

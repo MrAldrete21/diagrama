@@ -25,3 +25,6 @@ dist-ssr
 
 # Claude Code runtime
 .claude/scheduled_tasks.lock
+
+# Evidencia/avance subida desde el panel de Archivos (si el root no apunta a otro repo)
+/progreso/

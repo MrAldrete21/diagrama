@@ -84,6 +84,14 @@ describe('parse: atributos de nodo', () => {
     ]);
     expect(flow('A\n').nodes[0].tests).toBeUndefined();
   });
+
+  it('assets (evidencia/avance) separados por ;', () => {
+    expect(flow('A [assets: progreso/A/v.mp4; progreso/A/foto.png]\n').nodes[0].assets).toEqual([
+      'progreso/A/v.mp4',
+      'progreso/A/foto.png',
+    ]);
+    expect(flow('A\n').nodes[0].assets).toBeUndefined();
+  });
 });
 
 describe('parse: robustez de atributos', () => {
