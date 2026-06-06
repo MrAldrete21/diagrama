@@ -9,7 +9,8 @@ export type Shape =
   | 'circle'
   | 'list'
   | 'note'
-  | 'image';
+  | 'image'
+  | 'upload';
 
 export const SHAPES: readonly Shape[] = [
   'rectangle',
@@ -21,6 +22,7 @@ export const SHAPES: readonly Shape[] = [
   'list',
   'note',
   'image',
+  'upload',
 ];
 
 export type ListStyle = 'bullets' | 'numbered';

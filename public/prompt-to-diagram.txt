@@ -92,10 +92,15 @@ Atributos de nodo (dentro de [ ], separados por coma):
                               # progreso"; en el prompt sale como "evidencia/avance".
 
 Formas (shape):
-    rectangle (default), ellipse, circle, diamond, hexagon, cylinder
+    rectangle (default), ellipse, circle, diamond, hexagon, cylinder, list, note,
+    image, upload
     - diamond: ideal para decisiones / condiciones
     - cylinder: bases de datos / storage
     - circle/ellipse: inicio / fin / estados
+    - upload: "buzon de progreso". Nodo donde el USUARIO sube archivos que vos le
+      pedis. Pone en `items:` lo que necesitas (un pedido por linea/;); el usuario
+      sube y queda en `assets:`. Doble-click sobre el nodo abre la interfaz de subida.
+      Ej: PruebaSenas [shape: upload, label: Subir senas, items: video HOLA; video GRACIAS]
 
 Iconos utiles (icon):
     user, database, server, globe, lock, api, code, file

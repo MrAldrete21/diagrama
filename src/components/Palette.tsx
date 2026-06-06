@@ -13,6 +13,7 @@ const SHAPE_LABELS: Record<Shape, string> = {
   list: 'List',
   note: 'Note',
   image: 'Image',
+  upload: 'Buzon',
 };
 
 export function Palette({
@@ -236,6 +237,26 @@ function ShapePreview({ shape }: { shape: Shape }) {
             fill="none"
             stroke={stroke}
             strokeWidth="1.2"
+          />
+        </svg>
+      );
+    case 'upload':
+      return (
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path
+            d="M8 2 L8 10 M8 2 L5 5 M8 2 L11 5"
+            stroke={stroke}
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M2.5 10 L2.5 13.5 L13.5 13.5 L13.5 10"
+            fill="none"
+            stroke={stroke}
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </svg>
       );

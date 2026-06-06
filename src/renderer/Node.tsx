@@ -67,7 +67,11 @@ export function Node({
       {node.shape === 'list' && <ListContents node={node} />}
       {node.shape === 'note' && <NoteContents node={node} />}
       {node.shape === 'image' && <ImageContents node={node} />}
-      {node.shape !== 'list' && node.shape !== 'note' && node.shape !== 'image' && (
+      {node.shape === 'upload' && <UploadContents node={node} />}
+      {node.shape !== 'list' &&
+        node.shape !== 'note' &&
+        node.shape !== 'image' &&
+        node.shape !== 'upload' && (
         <>
           {hasIcon && iconIsSvg && (
             <IconAt
@@ -542,6 +546,60 @@ function ImageContents({ node }: { node: LayoutNode }) {
   );
 }
 
+// Nodo "buzon de progreso" (shape: upload): icono de subida + label + contador
+// de archivos subidos / pedidos por el modelo. Doble-click abre su interfaz.
+function UploadContents({ node }: { node: LayoutNode }) {
+  const w = node.width;
+  const uploaded = node.assets?.length ?? 0;
+  const requested = node.items?.length ?? 0;
+  return (
+    <>
+      <g transform={`translate(${w / 2 - 9}, 14)`} className="node-upload-icon">
+        <path
+          d="M9 1.5 L9 11 M9 1.5 L5 5.5 M9 1.5 L13 5.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M1.5 10 L1.5 15.5 a1 1 0 0 0 1 1 L15.5 16.5 a1 1 0 0 0 1 -1 L16.5 10"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </g>
+      <text
+        className="node-label"
+        x={w / 2}
+        y={50}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize={13}
+        fontWeight={600}
+        fontFamily="system-ui, -apple-system, sans-serif"
+      >
+        {node.label}
+      </text>
+      <text
+        className="node-upload-count"
+        x={w / 2}
+        y={72}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize={11}
+        fontFamily="system-ui, -apple-system, sans-serif"
+      >
+        {uploaded} subido{uploaded === 1 ? '' : 's'}
+        {requested > 0 ? ` · ${requested} pedido${requested === 1 ? '' : 's'}` : ''}
+      </text>
+    </>
+  );
+}
+
 function NoteContents({ node }: { node: LayoutNode }) {
   const w = node.width;
   const h = node.height;
@@ -688,6 +746,8 @@ function NodeShape({ node }: { node: LayoutNode }) {
       return <rect className="node-shape" width={w} height={h} rx={6} ry={6} />;
     case 'image':
       return <rect className="node-shape" width={w} height={h} rx={6} ry={6} />;
+    case 'upload':
+      return <rect className="node-shape node-upload-shape" width={w} height={h} rx={8} ry={8} />;
     case 'note':
       // Folded-corner note shape: rectangle with a tiny triangle cut from top-right
       return (

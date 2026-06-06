@@ -21,6 +21,7 @@ import { fetchDiagramLibrary } from './diagrams/library';
 import { LinterPanel } from './components/LinterPanel';
 import { SnapshotPanel } from './components/SnapshotPanel';
 import { FilesPanel } from './components/FilesPanel';
+import { UploadNodeModal } from './components/UploadNodeModal';
 import { RepoFilePicker } from './components/RepoFilePicker';
 import { lintDiagram } from './lint/lintDiagram';
 import { ContextMenu } from './components/ContextMenu';
@@ -131,6 +132,8 @@ function App() {
   const [linterOpen, setLinterOpen] = useState(false);
   const [snapshotsOpen, setSnapshotsOpen] = useState(false);
   const [filesPanelOpen, setFilesPanelOpen] = useState(false);
+  // Nodo "buzon de progreso" cuya interfaz de subida esta abierta (shape: upload).
+  const [uploadNodeId, setUploadNodeId] = useState<string | null>(null);
   const [transform, setTransform] = useState<Transform>({ tx: 0, ty: 0, scale: 1 });
   const [recentColors, setRecentColors] = useState<string[]>([]);
   const [menuFocused, setMenuFocused] = useState(false);
@@ -787,6 +790,12 @@ function App() {
   const handleNodeDoubleClick = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    // Nodo "buzon de progreso": doble-click abre su interfaz de subida en vez de
+    // editar el label.
+    if (ast.type === 'flowchart' && ast.nodes.find((n) => n.id === id)?.shape === 'upload') {
+      setUploadNodeId(id);
+      return;
+    }
     startLabelEdit(id, false);
   };
 
@@ -1684,6 +1693,19 @@ function App() {
       }
       next = removeNodeAttrInPlace(next, node.id, node.sourceLine, 'content');
       next = removeNodeAttrInPlace(next, node.id, node.sourceLine, 'items');
+      next = removeNodeAttrInPlace(next, node.id, node.sourceLine, 'listStyle');
+      clearManualSize(node.id);
+    } else if (cfg.kind === 'upload') {
+      // Buzon de progreso: shape=upload + items = pedidos del modelo. assets se
+      // maneja en la interfaz del nodo (no se toca aca).
+      next = updateNodeAttrInPlace(next, node.id, node.sourceLine, 'shape', 'upload');
+      if (cfg.items.length > 0) {
+        next = updateNodeAttrInPlace(next, node.id, node.sourceLine, 'items', cfg.items.join('; '));
+      } else {
+        next = removeNodeAttrInPlace(next, node.id, node.sourceLine, 'items');
+      }
+      next = removeNodeAttrInPlace(next, node.id, node.sourceLine, 'content');
+      next = removeNodeAttrInPlace(next, node.id, node.sourceLine, 'src');
       next = removeNodeAttrInPlace(next, node.id, node.sourceLine, 'listStyle');
       clearManualSize(node.id);
     } else {
@@ -3190,6 +3212,19 @@ function App() {
           onClose={() => setFilesPanelOpen(false)}
         />
       )}
+      {uploadNodeId &&
+        ast.type === 'flowchart' &&
+        (() => {
+          const upNode = ast.nodes.find((n) => n.id === uploadNodeId);
+          if (!upNode) return null;
+          return (
+            <UploadNodeModal
+              node={upNode}
+              onSetAssets={handleSetAssets}
+              onClose={() => setUploadNodeId(null)}
+            />
+          );
+        })()}
       {filesEditId && singleSelectedNode && labelPickerScreenPos && (
         <div
           className="conditional-input"

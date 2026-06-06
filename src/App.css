@@ -2934,6 +2934,17 @@ kbd {
   fill: #0ea5e9;
 }
 
+/* Nodo "buzon de progreso" (shape: upload) */
+.node-upload-shape {
+  stroke-dasharray: 5 4;
+}
+.node-upload-icon {
+  color: #0ea5e9;
+}
+.node-upload-count {
+  fill: var(--text-muted);
+}
+
 /* ===== Panel Archivos / Progreso ===== */
 .files-panel-summary {
   font-size: 11px;
@@ -3158,6 +3169,107 @@ kbd {
   font-size: 15px;
   cursor: pointer;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* ===== Modal del buzon de progreso (nodo shape: upload) ===== */
+.upload-modal {
+  width: min(640px, 92vw);
+}
+.upload-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.upload-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.upload-requests {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.upload-request {
+  font-size: 13px;
+  color: var(--text);
+}
+.upload-empty {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.upload-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+.upload-asset {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-alt);
+}
+.upload-asset-thumb {
+  width: 100%;
+  height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: #0b0b0c;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+}
+.upload-asset-thumb:disabled {
+  cursor: default;
+}
+.upload-asset-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.upload-asset-kind {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #cbd5e1;
+}
+.upload-asset-foot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+}
+.upload-asset-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+.upload-dropzone {
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.upload-dropzone:hover,
+.upload-dropzone.is-drag {
+  border-color: #0ea5e9;
+  color: #0ea5e9;
+  background: color-mix(in srgb, #0ea5e9 8%, transparent);
 }
 
 /* ===== Content editor (Shift+T) ===== */

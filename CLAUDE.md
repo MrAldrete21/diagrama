@@ -46,6 +46,17 @@ Partes de abajo quedaron viejas. Estado real:
     el nodo tiene avance + su status). Subir/preview es DEV-ONLY (endpoints del plugin);
     en prod el panel es solo-lectura. Helpers en `repo/files.ts`: `uploadAsset`,
     `rawUrl`, `assetKind`/`AssetKind`. `/progreso/` esta en `.gitignore`.
+  - **Nodo "buzon de progreso" (`shape: upload`)**: tipo de nodo con interfaz propia
+    (`components/UploadNodeModal`) para que el MODELO pida archivos y el USUARIO los suba.
+    El modelo lista los pedidos en `items:` (un pedido por `;`); el usuario hace
+    **doble-click** sobre el nodo -> abre el modal: muestra los pedidos (`items`), los
+    archivos subidos (`assets`) con thumbnail/preview, y una dropzone (drag&drop o click)
+    que sube via `POST /__upload` y vincula a `assets:` (`handleSetAssets`). El nodo se ve
+    como card dashed con icono de subida + contador "N subidos · M pedidos"
+    (`UploadContents` en `Node.tsx`, sizing en `layout.ts`). Crear: tool **Buzon** en la
+    Palette, pestania **"buzon (progreso)"** del CustomBlockMenu (Shift+3,
+    `CustomBlockApply` kind `upload`), o DSL directo. `handleNodeDoubleClick` detecta
+    `shape==='upload'` y abre `uploadNodeId` en vez de editar el label.
   - **Indicador de sync** (`syncStatus` + `.sync-badge`, fixed top-center): muestra si el
     diagrama esta guardado en su .txt (`✓ x.txt` / `guardando…` / `sin vincular` / error).
     Lo maneja el effect de auto-guardado (match por title).

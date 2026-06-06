@@ -37,6 +37,13 @@ describe('parse: atributos de nodo', () => {
     expect(flow('A [shape: cylinder]\n').nodes[0].shape).toBe('cylinder');
   });
 
+  it('shape upload (buzon de progreso) con items y assets', () => {
+    const n = flow('A [shape: upload, items: video; foto, assets: progreso/A/v.mp4]\n').nodes[0];
+    expect(n.shape).toBe('upload');
+    expect(n.items).toEqual(['video', 'foto']);
+    expect(n.assets).toEqual(['progreso/A/v.mp4']);
+  });
+
   it('labels separados por ;', () => {
     expect(flow('A [labels: goal; feature]\n').nodes[0].labels).toEqual(['goal', 'feature']);
   });

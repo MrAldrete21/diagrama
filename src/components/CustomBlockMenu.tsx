@@ -6,9 +6,10 @@ export type CustomBlockApply =
   | { kind: 'list'; items: string[]; listStyle: ListStyle }
   | { kind: 'note'; content: string }
   | { kind: 'image'; src: string }
+  | { kind: 'upload'; items: string[] }
   | { kind: 'rectangle' };
 
-type Tab = 'list' | 'note' | 'image';
+type Tab = 'list' | 'note' | 'image' | 'upload';
 
 export function CustomBlockMenu({
   node,
@@ -20,7 +21,13 @@ export function CustomBlockMenu({
   onClose: () => void;
 }) {
   const initialTab: Tab =
-    node.shape === 'note' ? 'note' : node.shape === 'image' ? 'image' : 'list';
+    node.shape === 'note'
+      ? 'note'
+      : node.shape === 'image'
+        ? 'image'
+        : node.shape === 'upload'
+          ? 'upload'
+          : 'list';
   const [tab, setTab] = useState<Tab>(initialTab);
   const [items, setItems] = useState((node.items ?? []).join('\n'));
   const [listStyle, setListStyle] = useState<ListStyle>(node.listStyle ?? 'bullets');
@@ -59,6 +66,14 @@ export function CustomBlockMenu({
 
   const handleApplyImage = () => {
     onApply({ kind: 'image', src });
+  };
+
+  const handleApplyUpload = () => {
+    const list = items
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean);
+    onApply({ kind: 'upload', items: list });
   };
 
   const handleBackToRect = () => {
@@ -120,6 +135,13 @@ export function CustomBlockMenu({
             onClick={() => setTab('image')}
           >
             image
+          </button>
+          <button
+            type="button"
+            className={`block-type-tab ${tab === 'upload' ? 'is-active' : ''}`}
+            onClick={() => setTab('upload')}
+          >
+            buzon (progreso)
           </button>
         </div>
         <div className="modal-body custom-block-body">
@@ -214,6 +236,29 @@ export function CustomBlockMenu({
               )}
             </section>
           )}
+          {tab === 'upload' && (
+            <section>
+              <p className="custom-block-hint">
+                Buzon de progreso: doble-click sobre el nodo abre su interfaz para
+                SUBIR archivos (videos, imagenes, docs). Aca podes listar lo que el
+                modelo te pide (un pedido por linea) — tambien lo completa el modelo
+                via el loop. Ctrl+Enter aplica.
+              </p>
+              <textarea
+                className="block-items-input"
+                value={items}
+                placeholder={'video de la seña HOLA\nfoto del avatar\ndoc de criterios'}
+                rows={8}
+                onChange={(e) => setItems(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    handleApplyUpload();
+                  }
+                }}
+              />
+            </section>
+          )}
           {tab === 'note' && (
             <section>
               <p className="custom-block-hint">
@@ -239,7 +284,10 @@ export function CustomBlockMenu({
           )}
         </div>
         <footer className="custom-block-footer">
-          {(node.shape === 'list' || node.shape === 'note' || node.shape === 'image') && (
+          {(node.shape === 'list' ||
+            node.shape === 'note' ||
+            node.shape === 'image' ||
+            node.shape === 'upload') && (
             <button
               type="button"
               className="btn btn-ghost"
@@ -261,7 +309,9 @@ export function CustomBlockMenu({
                 ? handleApplyList
                 : tab === 'note'
                   ? handleApplyNote
-                  : handleApplyImage
+                  : tab === 'image'
+                    ? handleApplyImage
+                    : handleApplyUpload
             }
             title="Ctrl+Enter"
           >

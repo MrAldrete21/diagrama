@@ -14,6 +14,17 @@ la arquitectura y el estado de cada nodo. Sintaxis del DSL si la necesitas:
 - `status: todo|wip|done|blocked`
 - `request: true`  -> tarea que el usuario pide (tu lista de pendientes)
 - `file: src/a.ts; src/b.ts`  -> archivos que implementan el nodo
+- `assets: ...`  -> archivos que el usuario SUBIO como evidencia/avance (no los
+  edites; son suyos). Si estan, el nodo ya tiene progreso real.
+
+## Pedir archivos al usuario (buzon de progreso)
+Si necesitas que el usuario te de algo (un video, una captura, un doc), crea o usa
+un nodo `shape: upload` y pone tus pedidos en `items:` (un pedido por `;`):
+
+    Evidencia [shape: upload, label: Subir progreso, items: video de la seña HOLA; captura de la pantalla X]
+
+El usuario hace doble-click en ese nodo, sube los archivos, y quedan en `assets:`.
+La proxima vez que leas el diagrama vas a ver esos `assets:` -> sabes que ya los subio.
 
 ## Escribir (al implementar)
 En el nodo: pone `status: done`, agrega `file:` con lo que tocaste, y quita
