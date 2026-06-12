@@ -2966,6 +2966,7 @@ kbd {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -3192,6 +3193,7 @@ kbd {
   flex-direction: column;
   gap: 10px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding-right: 2px;
 }
 .buzon-collapse {
@@ -3457,6 +3459,7 @@ kbd {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -3484,6 +3487,11 @@ kbd {
   cursor: default;
 }
 .tasks-card {
+  /* flex-shrink 0: las cards son flex items del .tasks-body (scrolleable); sin
+     esto una card expandida con checklist largo se COMPRIME para caber (su
+     contenido tiene overflow, min-content ~0) y el scroll exterior nunca
+     aparece. Con shrink 0 la card mantiene su altura y el panel scrollea. */
+  flex-shrink: 0;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--bg-alt);

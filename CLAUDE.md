@@ -70,6 +70,11 @@ Partes de abajo quedaron viejas. Estado real:
     primer `|`). `buildDevPrompt` la emite entre parentesis. Scroll fix: los cuerpos de los
     paneles (`.buzon-body`, `.tasks-body`, `.files-panel-body`) llevan `min-height: 0` —
     sin eso el flex item crece y las listas largas quedaban cortadas sin scroll.
+    Ademas `.tasks-card` lleva `flex-shrink: 0`: sin eso la card expandida con un
+    checklist largo se COMPRIMIA para caber en el panel (su contenido tiene overflow,
+    min-content ~0) y el scroll exterior nunca aparecia. `overscroll-behavior: contain`
+    en los tres cuerpos evita que la rueda se escape al canvas. `main.tsx` desregistra
+    service workers en dev (un SW viejo de un build PWA serviria la app vieja).
   - **Buzon de TEXTO (`shape: form`)**: gemelo del buzon de archivos pero cada elemento se
     completa ESCRIBIENDO una respuesta (textarea, se guarda al blur) en vez de subiendo
     archivos. `BuzonItem.text?` en types; `itemComplete` = files>0 || text no vacio. Misma
