@@ -92,7 +92,8 @@ function componentLine(n: DiagramNode, resolveName: (id: string) => string): str
         if (it.files.length > 0) parts.push(it.files.join('; '));
         if (it.text?.trim()) parts.push(`"${it.text.trim()}"`);
         const v = parts.length > 0 ? `${parts.join(' · ')} ✓` : 'pendiente';
-        line += '\n' + `      - ${it.name}: ${v}`;
+        const desc = it.desc?.trim() ? ` (${it.desc.trim()})` : '';
+        line += '\n' + `      - ${it.name}${desc}: ${v}`;
       }
     }
   }

@@ -104,9 +104,10 @@ Formas (shape):
       cuando todos sus elementos estan; el nodo pasa a status: done solo cuando
       TODAS las listas estan completas. Para PEDIR: pone en `items:` lo que
       necesitas (un pedido por ;) -> el nodo los ofrece como una lista "Pedidos".
+      Cada pedido puede llevar descripcion: "nombre | descripcion exacta".
       El checklist completo se guarda en el attr `buzon` (base64-JSON, NO lo
       edites a mano).
-      Ej: PruebaSenas [shape: upload, label: Subir senas, items: video HOLA; video GRACIAS]
+      Ej: PruebaSenas [shape: upload, label: Subir senas, items: video HOLA | de frente, manos visibles; video GRACIAS]
     - form: "buzon de texto" (PREGUNTAS). Igual que upload pero el usuario completa
       cada elemento ESCRIBIENDO una respuesta de texto (no subiendo archivos).
       Usalo para preguntarle cosas: decisiones, preferencias, criterios. Las

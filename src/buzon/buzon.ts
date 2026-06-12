@@ -37,13 +37,14 @@ export function normalizeBuzon(obj: unknown): BuzonData {
         id: typeof lr?.id === 'string' ? lr.id : newId('l'),
         name: typeof lr?.name === 'string' ? lr.name : 'Lista',
         items: items.map((it): BuzonItem => {
-          const ir = it as { id?: unknown; name?: unknown; files?: unknown; text?: unknown };
+          const ir = it as { id?: unknown; name?: unknown; desc?: unknown; files?: unknown; text?: unknown };
           const files = Array.isArray(ir?.files) ? ir.files.filter((f): f is string => typeof f === 'string') : [];
           const item: BuzonItem = {
             id: typeof ir?.id === 'string' ? ir.id : newId('i'),
             name: typeof ir?.name === 'string' ? ir.name : 'Elemento',
             files,
           };
+          if (typeof ir?.desc === 'string' && ir.desc.trim()) item.desc = ir.desc;
           if (typeof ir?.text === 'string' && ir.text.trim()) item.text = ir.text;
           return item;
         }),
@@ -96,8 +97,9 @@ export function computeBuzonStatus(data: BuzonData): NodeStatus {
   return 'todo';
 }
 
-// Migracion suave: si el nodo no tiene buzon pero tiene `items:` (pedidos viejos
-// del modelo), arranca con una lista "Pedidos" con esos elementos vacios.
+// Migracion suave: si el nodo no tiene buzon pero tiene `items:` (pedidos del
+// modelo), arranca con una lista "Pedidos" con esos elementos vacios. Cada item
+// puede traer descripcion con el formato "nombre | descripcion".
 export function seedBuzon(existing: BuzonData | undefined, items: string[] | undefined): BuzonData {
   if (existing && existing.lists.length > 0) return existing;
   if (items && items.length > 0) {
@@ -106,7 +108,14 @@ export function seedBuzon(existing: BuzonData | undefined, items: string[] | und
         {
           id: newId('l'),
           name: 'Pedidos',
-          items: items.map((name) => ({ id: newId('i'), name, files: [] })),
+          items: items.map((raw) => {
+            const sep = raw.indexOf('|');
+            const name = (sep === -1 ? raw : raw.slice(0, sep)).trim();
+            const desc = sep === -1 ? '' : raw.slice(sep + 1).trim();
+            const item: BuzonItem = { id: newId('i'), name: name || raw.trim(), files: [] };
+            if (desc) item.desc = desc;
+            return item;
+          }),
         },
       ],
     };

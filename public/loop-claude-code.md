@@ -29,6 +29,11 @@ Si necesitas algo del usuario, crea un nodo buzon con tus pedidos en `items:`
 
       Decisiones [shape: form, label: Preguntas de diseño, items: que stack preferis; web o mobile primero]
 
+Cada item puede llevar una DESCRIPCION de que se necesita exactamente, con el
+formato `nombre | descripcion`:
+
+      Evidencia [shape: upload, label: Subir señas, items: video HOLA | de frente y manos visibles; video GRACIAS | fondo claro]
+
 Todos los buzones aparecen juntos en la pestania "Tareas" de la app: el usuario
 avanza tarea por tarea (la camara salta al nodo) y completa cada elemento ahi
 mismo. Cada buzon es un CHECKLIST (listas -> elementos): tus `items:` aparecen

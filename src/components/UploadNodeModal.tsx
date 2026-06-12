@@ -93,6 +93,8 @@ export function BuzonChecklist({
     setLocal(inItem(listId, itemId, (it) => ({ ...it, name })));
   const setItemText = (listId: string, itemId: string, text: string) =>
     setLocal(inItem(listId, itemId, (it) => ({ ...it, text })));
+  const setItemDesc = (listId: string, itemId: string, desc: string) =>
+    setLocal(inItem(listId, itemId, (it) => ({ ...it, desc })));
 
   const removeFile = (listId: string, itemId: string, path: string) =>
     commit(inItem(listId, itemId, (it) => ({ ...it, files: it.files.filter((f) => f !== path) })));
@@ -188,6 +190,7 @@ export function BuzonChecklist({
                       onRename={(name) => renameItem(list.id, item.id, name)}
                       onRenameCommit={commitNow}
                       onText={(t) => setItemText(list.id, item.id, t)}
+                      onDesc={(d) => setItemDesc(list.id, item.id, d)}
                       onRemove={() => removeItem(list.id, item.id)}
                       onUpload={(files) => void uploadTo(list.id, item, files)}
                       onDragState={(on) => setDragItem(on ? item.id : null)}
@@ -294,6 +297,7 @@ function ItemRow({
   onRename,
   onRenameCommit,
   onText,
+  onDesc,
   onRemove,
   onUpload,
   onDragState,
@@ -308,6 +312,7 @@ function ItemRow({
   onRename: (name: string) => void;
   onRenameCommit: () => void;
   onText: (text: string) => void;
+  onDesc: (desc: string) => void;
   onRemove: () => void;
   onUpload: (files: FileList | File[]) => void;
   onDragState: (on: boolean) => void;
@@ -315,6 +320,8 @@ function ItemRow({
   onPreview: (path: string, kind: AssetKind) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  // Editor de descripcion visible si ya hay una o si el usuario la esta agregando.
+  const [descOpen, setDescOpen] = useState(!!item.desc);
   const done = itemComplete(item);
   return (
     <div
@@ -363,10 +370,30 @@ function ItemRow({
             />
           </>
         )}
+        <button
+          type="button"
+          className={`buzon-desc-toggle ${descOpen ? 'is-on' : ''}`}
+          title={descOpen ? 'ocultar descripcion' : 'agregar descripcion'}
+          onClick={() => setDescOpen((v) => !v)}
+        >
+          ✎
+        </button>
         <button type="button" className="files-row-x" title="borrar elemento" onClick={onRemove}>
           x
         </button>
       </div>
+      {descOpen && (
+        <textarea
+          className="buzon-item-desc"
+          placeholder="descripcion: que se necesita exactamente…"
+          value={item.desc ?? ''}
+          rows={Math.min(4, Math.max(1, (item.desc ?? '').split('\n').length))}
+          onChange={(e) => onDesc(e.target.value)}
+          onBlur={onRenameCommit}
+          onKeyDown={(e) => e.stopPropagation()}
+        />
+      )}
+      {!descOpen && item.desc && <div className="buzon-item-desc-view">{item.desc}</div>}
       {textMode && (
         <textarea
           className="buzon-item-text"

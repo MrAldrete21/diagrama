@@ -2964,6 +2964,7 @@ kbd {
 }
 .files-panel-body {
   flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -3184,6 +3185,9 @@ kbd {
 }
 .buzon-body {
   flex: 1 1 auto;
+  /* min-height 0: sin esto el flex item crece mas alla del panel y el scroll
+     nunca aparece (listas largas quedaban cortadas) */
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -3378,6 +3382,54 @@ kbd {
 .buzon-add-list .conditional-input-field {
   flex: 1 1 auto;
 }
+/* Descripcion del elemento (que se pide exactamente) */
+.buzon-desc-toggle {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1;
+  border-radius: 4px;
+}
+.buzon-desc-toggle:hover,
+.buzon-desc-toggle.is-on {
+  color: #0ea5e9;
+}
+.buzon-item-desc {
+  width: 100%;
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-family: inherit;
+  line-height: 1.4;
+  padding: 5px 7px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  background: none;
+  color: var(--text-muted);
+  resize: vertical;
+}
+.buzon-item-desc:focus {
+  outline: none;
+  border-color: var(--highlight-stroke);
+  color: var(--text);
+}
+.buzon-item-desc::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+.buzon-item-desc-view {
+  margin-top: 3px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+}
+
 /* Respuesta de texto (buzon de texto, shape: form) */
 .buzon-item-text {
   width: 100%;
@@ -3403,6 +3455,7 @@ kbd {
 /* ===== Pestania Tareas (lo que el modelo requiere del usuario) ===== */
 .tasks-body {
   flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;

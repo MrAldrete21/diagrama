@@ -107,6 +107,25 @@ describe('buzon: seed desde items viejos', () => {
     expect(seeded.lists[0].items.map((i) => i.name)).toEqual(['video', 'foto']);
   });
 
+  it('items con "nombre | descripcion" separan la desc', () => {
+    const seeded = seedBuzon(undefined, ['video HOLA | de frente, manos visibles', 'foto sola']);
+    expect(seeded.lists[0].items[0].name).toBe('video HOLA');
+    expect(seeded.lists[0].items[0].desc).toBe('de frente, manos visibles');
+    expect(seeded.lists[0].items[1].name).toBe('foto sola');
+    expect(seeded.lists[0].items[1].desc).toBeUndefined();
+  });
+
+  it('normalize conserva la descripcion', () => {
+    const enc = btoa(
+      unescape(
+        encodeURIComponent(
+          JSON.stringify({ lists: [{ id: 'l', name: 'A', items: [{ id: 'i', name: 'x', desc: 'detalle', files: [] }] }] }),
+        ),
+      ),
+    );
+    expect(decodeBuzon(enc).lists[0].items[0].desc).toBe('detalle');
+  });
+
   it('si ya hay buzon con listas, no re-siembra', () => {
     expect(seedBuzon(sample, ['x'])).toBe(sample);
   });

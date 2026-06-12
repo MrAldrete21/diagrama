@@ -64,6 +64,12 @@ Partes de abajo quedaron viejas. Estado real:
     pestania **"buzon (progreso)"** del CustomBlockMenu (Shift+3, `CustomBlockApply` kind
     `upload`, su textarea siembra `items:`), o DSL directo. `handleNodeDoubleClick` detecta
     `shape==='upload'|'form'` y abre `uploadNodeId`.
+  - **Descripcion por elemento del buzon**: `BuzonItem.desc?` — que se pide exactamente.
+    En la UI: boton ✎ en cada elemento abre/cierra el editor (textarea dashed, guarda al
+    blur). El modelo la siembra con `items: nombre | descripcion` (seedBuzon parte por el
+    primer `|`). `buildDevPrompt` la emite entre parentesis. Scroll fix: los cuerpos de los
+    paneles (`.buzon-body`, `.tasks-body`, `.files-panel-body`) llevan `min-height: 0` —
+    sin eso el flex item crece y las listas largas quedaban cortadas sin scroll.
   - **Buzon de TEXTO (`shape: form`)**: gemelo del buzon de archivos pero cada elemento se
     completa ESCRIBIENDO una respuesta (textarea, se guarda al blur) en vez de subiendo
     archivos. `BuzonItem.text?` en types; `itemComplete` = files>0 || text no vacio. Misma
