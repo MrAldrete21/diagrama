@@ -49,9 +49,22 @@ describe('buzon: encode/decode', () => {
 });
 
 describe('buzon: completitud', () => {
-  it('itemComplete = tiene archivos', () => {
+  it('itemComplete = tiene archivos o texto (buzon de texto)', () => {
     expect(itemComplete({ id: 'a', name: 'x', files: [] })).toBe(false);
     expect(itemComplete({ id: 'a', name: 'x', files: ['f'] })).toBe(true);
+    expect(itemComplete({ id: 'a', name: 'x', files: [], text: 'respuesta' })).toBe(true);
+    expect(itemComplete({ id: 'a', name: 'x', files: [], text: '   ' })).toBe(false);
+  });
+
+  it('normalize conserva el texto de la respuesta', () => {
+    const enc = btoa(
+      unescape(
+        encodeURIComponent(
+          JSON.stringify({ lists: [{ id: 'l', name: 'Q', items: [{ id: 'i', name: 'p', files: [], text: 'hola' }] }] }),
+        ),
+      ),
+    );
+    expect(decodeBuzon(enc).lists[0].items[0].text).toBe('hola');
   });
 
   it('listComplete = no vacia y todos los items con archivo', () => {

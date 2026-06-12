@@ -88,7 +88,10 @@ function componentLine(n: DiagramNode, resolveName: (id: string) => string): str
       const ld = l.items.filter(itemComplete).length;
       line += '\n' + `    - ${l.name} (${ld}/${l.items.length})${listComplete(l) ? ' ✓' : ''}`;
       for (const it of l.items) {
-        const v = it.files.length > 0 ? `${it.files.join('; ')} ✓` : 'pendiente';
+        const parts: string[] = [];
+        if (it.files.length > 0) parts.push(it.files.join('; '));
+        if (it.text?.trim()) parts.push(`"${it.text.trim()}"`);
+        const v = parts.length > 0 ? `${parts.join(' · ')} ✓` : 'pendiente';
         line += '\n' + `      - ${it.name}: ${v}`;
       }
     }

@@ -68,11 +68,12 @@ export function Node({
       {node.shape === 'list' && <ListContents node={node} />}
       {node.shape === 'note' && <NoteContents node={node} />}
       {node.shape === 'image' && <ImageContents node={node} />}
-      {node.shape === 'upload' && <UploadContents node={node} />}
+      {(node.shape === 'upload' || node.shape === 'form') && <UploadContents node={node} />}
       {node.shape !== 'list' &&
         node.shape !== 'note' &&
         node.shape !== 'image' &&
-        node.shape !== 'upload' && (
+        node.shape !== 'upload' &&
+        node.shape !== 'form' && (
         <>
           {hasIcon && iconIsSvg && (
             <IconAt
@@ -547,8 +548,8 @@ function ImageContents({ node }: { node: LayoutNode }) {
   );
 }
 
-// Nodo "buzon de progreso" (shape: upload): icono de subida + label + progreso
-// del checklist (elementos y listas completas). Doble-click abre su interfaz.
+// Nodos "buzon" (shape: upload = archivos, shape: form = texto): icono + label +
+// progreso del checklist (elementos y listas completas). Doble-click abre su interfaz.
 function UploadContents({ node }: { node: LayoutNode }) {
   const w = node.width;
   const prog = node.buzon ? buzonProgress(node.buzon) : null;
@@ -560,22 +561,39 @@ function UploadContents({ node }: { node: LayoutNode }) {
   return (
     <>
       <g transform={`translate(${w / 2 - 9}, 14)`} className="node-upload-icon">
-        <path
-          d="M9 1.5 L9 11 M9 1.5 L5 5.5 M9 1.5 L13 5.5"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M1.5 10 L1.5 15.5 a1 1 0 0 0 1 1 L15.5 16.5 a1 1 0 0 0 1 -1 L16.5 10"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        {node.shape === 'form' ? (
+          <>
+            <line x1={1.5} y1={3} x2={12} y2={3} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            <line x1={1.5} y1={8} x2={9} y2={8} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            <line x1={1.5} y1={13} x2={11} y2={13} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            <path
+              d="M16.5 6.5 L12.5 10.5 L11.8 13 L14.3 12.3 L18.3 8.3 Z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              strokeLinejoin="round"
+            />
+          </>
+        ) : (
+          <>
+            <path
+              d="M9 1.5 L9 11 M9 1.5 L5 5.5 M9 1.5 L13 5.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M1.5 10 L1.5 15.5 a1 1 0 0 0 1 1 L15.5 16.5 a1 1 0 0 0 1 -1 L16.5 10"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </>
+        )}
       </g>
       <text
         className="node-label"
@@ -751,6 +769,7 @@ function NodeShape({ node }: { node: LayoutNode }) {
     case 'image':
       return <rect className="node-shape" width={w} height={h} rx={6} ry={6} />;
     case 'upload':
+    case 'form':
       return <rect className="node-shape node-upload-shape" width={w} height={h} rx={8} ry={8} />;
     case 'note':
       // Folded-corner note shape: rectangle with a tiny triangle cut from top-right

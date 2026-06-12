@@ -13,20 +13,21 @@ const ROOT_KEY = 'diagrama:filesRoot';
 
 type Preview = { path: string; kind: AssetKind } | null;
 
-// Interfaz del nodo "buzon de progreso" (shape: upload). Panel del lado derecho
-// (no modal) organizado en SECCIONES: cada lista es una seccion colapsable con
-// sus elementos. Checklist anidado listas -> elementos -> archivos. Un elemento
-// se completa con >=1 archivo; una lista cuando todos sus elementos estan; el
-// nodo pasa a `done` (status, en App) cuando todas las listas estan completas.
-export function UploadNodeModal({
+// Checklist de un nodo buzon: secciones (listas) colapsables -> elementos.
+// Dos modos segun la shape del nodo:
+//   - upload: cada elemento se completa SUBIENDO >=1 archivo.
+//   - form:   cada elemento se completa ESCRIBIENDO una respuesta de texto.
+// Lista completa = todos sus elementos; el nodo pasa a `done` (status, calculado
+// en App via handleSetBuzon) cuando todas las listas estan completas.
+// Reusable: lo monta el panel del nodo (UploadNodeModal) y la pestania de tareas.
+export function BuzonChecklist({
   node,
   onSetBuzon,
-  onClose,
 }: {
   node: DiagramNode;
   onSetBuzon: (nodeId: string, data: BuzonData) => void;
-  onClose: () => void;
 }) {
+  const textMode = node.shape === 'form';
   const root = useMemo(() => {
     try {
       return localStorage.getItem(ROOT_KEY) ?? '';
@@ -35,8 +36,8 @@ export function UploadNodeModal({
     }
   }, []);
 
-  // Estado local = fuente de verdad mientras el panel esta abierto. Se siembra
-  // una vez (migra `items:` viejos a una lista "Pedidos").
+  // Estado local = fuente de verdad mientras el checklist esta montado. Se
+  // siembra una vez (migra `items:` viejos a una lista "Pedidos").
   const [data, setData] = useState<BuzonData>(() => seedBuzon(node.buzon, node.items));
   const dataRef = useRef(data);
   dataRef.current = data;
@@ -90,6 +91,8 @@ export function UploadNodeModal({
     commit(inList(listId, (l) => ({ ...l, items: l.items.filter((it) => it.id !== itemId) })));
   const renameItem = (listId: string, itemId: string, name: string) =>
     setLocal(inItem(listId, itemId, (it) => ({ ...it, name })));
+  const setItemText = (listId: string, itemId: string, text: string) =>
+    setLocal(inItem(listId, itemId, (it) => ({ ...it, text })));
 
   const removeFile = (listId: string, itemId: string, path: string) =>
     commit(inItem(listId, itemId, (it) => ({ ...it, files: it.files.filter((f) => f !== path) })));
@@ -109,6 +112,7 @@ export function UploadNodeModal({
       setErr('no se pudo subir (¿esta corriendo el dev server?)');
       return;
     }
+    // Reconstruye desde el estado actual (puede haber cambiado mientras subia).
     const cur = dataRef.current;
     const next: BuzonData = {
       lists: cur.lists.map((l) =>
@@ -125,117 +129,103 @@ export function UploadNodeModal({
     commit(next);
   };
 
-  const prog = buzonProgress(data);
-  const allDone = prog.totalLists > 0 && prog.doneLists === prog.totalLists;
-
   return (
     <>
-      <div
-        className="solver-panel buzon-panel"
-        role="dialog"
-        onClick={(e) => e.stopPropagation()}
-        onPointerDown={(e) => e.stopPropagation()}
-      >
-        <header className="solver-header">
-          <span className="solver-title" title={node.label || node.id}>
-            {node.label || node.id} · progreso
-          </span>
-          <span className={`buzon-overall ${allDone ? 'is-done' : ''}`}>
-            {prog.totalLists > 0 ? `${prog.doneLists}/${prog.totalLists}` : '—'}
-            {allDone ? ' ✓' : ''}
-          </span>
-          <button type="button" className="solver-close" onClick={onClose} aria-label="cerrar" tabIndex={-1}>
-            x
-          </button>
-        </header>
+      <div className="buzon-body">
+        {data.lists.length === 0 && (
+          <div className="buzon-empty">
+            Sin secciones todavia. Crea una abajo (ej "Senas L5", "Capturas"…) y
+            agregale elementos para {textMode ? 'responder' : 'subir contenido'}.
+          </div>
+        )}
 
-        <div className="buzon-body">
-          {data.lists.length === 0 && (
-            <div className="buzon-empty">
-              Sin secciones todavia. Crea una abajo (ej "Senas L5", "Capturas"…) y
-              agregale elementos para subir contenido.
-            </div>
-          )}
+        {data.lists.map((list) => {
+          const done = listComplete(list);
+          const ld = list.items.filter(itemComplete).length;
+          const isCollapsed = collapsed.has(list.id);
+          return (
+            <section key={list.id} className={`buzon-list ${done ? 'is-done' : ''}`}>
+              <div className="buzon-list-head">
+                <button
+                  type="button"
+                  className="buzon-collapse"
+                  onClick={() => toggleCollapse(list.id)}
+                  title={isCollapsed ? 'expandir' : 'colapsar'}
+                >
+                  {isCollapsed ? '▸' : '▾'}
+                </button>
+                <span className={`buzon-check ${done ? 'is-on' : ''}`}>{done ? '✓' : ''}</span>
+                <input
+                  className="buzon-list-name"
+                  value={list.name}
+                  onChange={(e) => renameList(list.id, e.target.value)}
+                  onBlur={commitNow}
+                  onKeyDown={(e) => e.stopPropagation()}
+                />
+                <span className="buzon-list-prog">
+                  {ld}/{list.items.length}
+                </span>
+                <button
+                  type="button"
+                  className="files-row-x"
+                  title="borrar seccion"
+                  onClick={() => removeList(list.id)}
+                >
+                  x
+                </button>
+              </div>
 
-          {data.lists.map((list) => {
-            const done = listComplete(list);
-            const ld = list.items.filter(itemComplete).length;
-            const isCollapsed = collapsed.has(list.id);
-            return (
-              <section key={list.id} className={`buzon-list ${done ? 'is-done' : ''}`}>
-                <div className="buzon-list-head">
-                  <button
-                    type="button"
-                    className="buzon-collapse"
-                    onClick={() => toggleCollapse(list.id)}
-                    title={isCollapsed ? 'expandir' : 'colapsar'}
-                  >
-                    {isCollapsed ? '▸' : '▾'}
-                  </button>
-                  <span className={`buzon-check ${done ? 'is-on' : ''}`}>{done ? '✓' : ''}</span>
-                  <input
-                    className="buzon-list-name"
-                    value={list.name}
-                    onChange={(e) => renameList(list.id, e.target.value)}
-                    onBlur={commitNow}
-                    onKeyDown={(e) => e.stopPropagation()}
+              {!isCollapsed && (
+                <>
+                  {list.items.map((item) => (
+                    <ItemRow
+                      key={item.id}
+                      root={root}
+                      item={item}
+                      textMode={textMode}
+                      busy={busyItem === item.id}
+                      drag={dragItem === item.id}
+                      onRename={(name) => renameItem(list.id, item.id, name)}
+                      onRenameCommit={commitNow}
+                      onText={(t) => setItemText(list.id, item.id, t)}
+                      onRemove={() => removeItem(list.id, item.id)}
+                      onUpload={(files) => void uploadTo(list.id, item, files)}
+                      onDragState={(on) => setDragItem(on ? item.id : null)}
+                      onRemoveFile={(p) => removeFile(list.id, item.id, p)}
+                      onPreview={(p, kind) => setPreview({ path: p, kind })}
+                    />
+                  ))}
+                  <AddItem
+                    placeholder={
+                      textMode
+                        ? '+ pregunta (ej: ¿que stack preferis?)'
+                        : '+ elemento (ej: video de la seña HOLA)'
+                    }
+                    onAdd={(name) => addItem(list.id, name)}
                   />
-                  <span className="buzon-list-prog">
-                    {ld}/{list.items.length}
-                  </span>
-                  <button
-                    type="button"
-                    className="files-row-x"
-                    title="borrar seccion"
-                    onClick={() => removeList(list.id)}
-                  >
-                    x
-                  </button>
-                </div>
+                </>
+              )}
+            </section>
+          );
+        })}
 
-                {!isCollapsed && (
-                  <>
-                    {list.items.map((item) => (
-                      <ItemRow
-                        key={item.id}
-                        root={root}
-                        item={item}
-                        busy={busyItem === item.id}
-                        drag={dragItem === item.id}
-                        onRename={(name) => renameItem(list.id, item.id, name)}
-                        onRenameCommit={commitNow}
-                        onRemove={() => removeItem(list.id, item.id)}
-                        onUpload={(files) => void uploadTo(list.id, item, files)}
-                        onDragState={(on) => setDragItem(on ? item.id : null)}
-                        onRemoveFile={(p) => removeFile(list.id, item.id, p)}
-                        onPreview={(p, kind) => setPreview({ path: p, kind })}
-                      />
-                    ))}
-                    <AddItem onAdd={(name) => addItem(list.id, name)} />
-                  </>
-                )}
-              </section>
-            );
-          })}
+        {err && <div className="files-panel-err">{err}</div>}
+      </div>
 
-          {err && <div className="files-panel-err">{err}</div>}
-        </div>
-
-        <div className="buzon-add-list">
-          <input
-            className="conditional-input-field"
-            placeholder="nueva seccion…"
-            value={newListName}
-            onChange={(e) => setNewListName(e.target.value)}
-            onKeyDown={(e) => {
-              e.stopPropagation();
-              if (e.key === 'Enter') addList();
-            }}
-          />
-          <button type="button" className="btn btn-primary" onClick={addList}>
-            + seccion
-          </button>
-        </div>
+      <div className="buzon-add-list">
+        <input
+          className="conditional-input-field"
+          placeholder="nueva seccion…"
+          value={newListName}
+          onChange={(e) => setNewListName(e.target.value)}
+          onKeyDown={(e) => {
+            e.stopPropagation();
+            if (e.key === 'Enter') addList();
+          }}
+        />
+        <button type="button" className="btn btn-primary" onClick={addList}>
+          + seccion
+        </button>
       </div>
 
       {preview && (
@@ -258,13 +248,52 @@ export function UploadNodeModal({
   );
 }
 
+// Panel del lado derecho del nodo buzon (doble-click sobre el nodo).
+export function UploadNodeModal({
+  node,
+  onSetBuzon,
+  onClose,
+}: {
+  node: DiagramNode;
+  onSetBuzon: (nodeId: string, data: BuzonData) => void;
+  onClose: () => void;
+}) {
+  // Progreso para el header: del AST (se refresca en cada commit del checklist).
+  const prog = buzonProgress(seedBuzon(node.buzon, node.items));
+  const allDone = prog.totalLists > 0 && prog.doneLists === prog.totalLists;
+  return (
+    <div
+      className="solver-panel buzon-panel"
+      role="dialog"
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
+      <header className="solver-header">
+        <span className="solver-title" title={node.label || node.id}>
+          {node.label || node.id} · progreso
+        </span>
+        <span className={`buzon-overall ${allDone ? 'is-done' : ''}`}>
+          {prog.totalLists > 0 ? `${prog.doneLists}/${prog.totalLists}` : '—'}
+          {allDone ? ' ✓' : ''}
+        </span>
+        <button type="button" className="solver-close" onClick={onClose} aria-label="cerrar" tabIndex={-1}>
+          x
+        </button>
+      </header>
+      <BuzonChecklist node={node} onSetBuzon={onSetBuzon} />
+    </div>
+  );
+}
+
 function ItemRow({
   root,
   item,
+  textMode,
   busy,
   drag,
   onRename,
   onRenameCommit,
+  onText,
   onRemove,
   onUpload,
   onDragState,
@@ -273,10 +302,12 @@ function ItemRow({
 }: {
   root: string;
   item: BuzonItem;
+  textMode: boolean;
   busy: boolean;
   drag: boolean;
   onRename: (name: string) => void;
   onRenameCommit: () => void;
+  onText: (text: string) => void;
   onRemove: () => void;
   onUpload: (files: FileList | File[]) => void;
   onDragState: (on: boolean) => void;
@@ -289,11 +320,13 @@ function ItemRow({
     <div
       className={`buzon-item ${done ? 'is-done' : ''} ${drag ? 'is-drag' : ''}`}
       onDragOver={(e) => {
+        if (textMode) return;
         e.preventDefault();
         onDragState(true);
       }}
       onDragLeave={() => onDragState(false)}
       onDrop={(e) => {
+        if (textMode) return;
         e.preventDefault();
         onDragState(false);
         onUpload(e.dataTransfer.files);
@@ -308,29 +341,44 @@ function ItemRow({
           onBlur={onRenameCommit}
           onKeyDown={(e) => e.stopPropagation()}
         />
-        <button
-          type="button"
-          className="buzon-upload-btn"
-          disabled={busy}
-          onClick={() => inputRef.current?.click()}
-        >
-          {busy ? '…' : '+ subir'}
-        </button>
-        <input
-          ref={inputRef}
-          type="file"
-          multiple
-          hidden
-          onChange={(e) => {
-            if (e.target.files && e.target.files.length > 0) onUpload(e.target.files);
-            e.target.value = '';
-          }}
-        />
+        {!textMode && (
+          <>
+            <button
+              type="button"
+              className="buzon-upload-btn"
+              disabled={busy}
+              onClick={() => inputRef.current?.click()}
+            >
+              {busy ? '…' : '+ subir'}
+            </button>
+            <input
+              ref={inputRef}
+              type="file"
+              multiple
+              hidden
+              onChange={(e) => {
+                if (e.target.files && e.target.files.length > 0) onUpload(e.target.files);
+                e.target.value = '';
+              }}
+            />
+          </>
+        )}
         <button type="button" className="files-row-x" title="borrar elemento" onClick={onRemove}>
           x
         </button>
       </div>
-      {item.files.length > 0 && (
+      {textMode && (
+        <textarea
+          className="buzon-item-text"
+          placeholder="escribi tu respuesta… (se guarda al salir del campo)"
+          value={item.text ?? ''}
+          rows={Math.min(6, Math.max(2, (item.text ?? '').split('\n').length))}
+          onChange={(e) => onText(e.target.value)}
+          onBlur={onRenameCommit}
+          onKeyDown={(e) => e.stopPropagation()}
+        />
+      )}
+      {!textMode && item.files.length > 0 && (
         <div className="buzon-files">
           {item.files.map((p) => {
             const kind = assetKind(p);
@@ -372,7 +420,7 @@ function ItemRow({
   );
 }
 
-function AddItem({ onAdd }: { onAdd: (name: string) => void }) {
+function AddItem({ placeholder, onAdd }: { placeholder: string; onAdd: (name: string) => void }) {
   const [name, setName] = useState('');
   const submit = () => {
     if (!name.trim()) return;
@@ -383,7 +431,7 @@ function AddItem({ onAdd }: { onAdd: (name: string) => void }) {
     <div className="buzon-add-item">
       <input
         className="buzon-add-item-input"
-        placeholder="+ elemento (ej: video de la seña HOLA)"
+        placeholder={placeholder}
         value={name}
         onChange={(e) => setName(e.target.value)}
         onKeyDown={(e) => {

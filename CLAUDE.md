@@ -63,7 +63,19 @@ Partes de abajo quedaron viejas. Estado real:
     checklist con completitud (el modelo ve que subiste). Crear: tool **Buzon** en la Palette,
     pestania **"buzon (progreso)"** del CustomBlockMenu (Shift+3, `CustomBlockApply` kind
     `upload`, su textarea siembra `items:`), o DSL directo. `handleNodeDoubleClick` detecta
-    `shape==='upload'` y abre `uploadNodeId`.
+    `shape==='upload'|'form'` y abre `uploadNodeId`.
+  - **Buzon de TEXTO (`shape: form`)**: gemelo del buzon de archivos pero cada elemento se
+    completa ESCRIBIENDO una respuesta (textarea, se guarda al blur) en vez de subiendo
+    archivos. `BuzonItem.text?` en types; `itemComplete` = files>0 || text no vacio. Misma
+    cascada de status. El checklist (`BuzonChecklist`, extraido de `UploadNodeModal` como
+    componente reusable) elige el modo por `node.shape`. Tool **Texto** en la Palette.
+    `buildDevPrompt` emite las respuestas entre comillas (el modelo las lee).
+  - **Pestania "Tareas" (`components/TasksPanel`, boton en ShortcutBar, icono clipboard)**:
+    panel del lado derecho que junta TODO lo que el modelo requiere del usuario = los nodos
+    buzon (upload + form), pendientes primero. Cada tarea es una card colapsable que embebe
+    su `BuzonChecklist` (se completa ahi mismo, sin buscar el nodo). Botones **◀ ▶** avanzan
+    por las tareas pendientes y `onFocusNode` selecciona el nodo + **centra la camara**
+    (`panZoomRef.centerOn`, mismo patron que NodeSearch).
   - **Indicador de sync** (`syncStatus` + `.sync-badge`, fixed top-center): muestra si el
     diagrama esta guardado en su .txt (`✓ x.txt` / `guardando…` / `sin vincular` / error).
     Lo maneja el effect de auto-guardado (match por title).

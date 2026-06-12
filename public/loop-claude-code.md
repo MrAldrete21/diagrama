@@ -17,17 +17,24 @@ la arquitectura y el estado de cada nodo. Sintaxis del DSL si la necesitas:
 - `assets: ...`  -> archivos que el usuario SUBIO como evidencia/avance (no los
   edites; son suyos). Si estan, el nodo ya tiene progreso real.
 
-## Pedir archivos al usuario (buzon de progreso)
-Si necesitas que el usuario te de algo (un video, una captura, un doc), crea o usa
-un nodo `shape: upload` y pone tus pedidos en `items:` (un pedido por `;`):
+## Pedir cosas al usuario (buzones + pestania Tareas)
+Si necesitas algo del usuario, crea un nodo buzon con tus pedidos en `items:`
+(un pedido por `;`). Hay dos tipos:
 
-    Evidencia [shape: upload, label: Subir progreso, items: video de la seña HOLA; captura de la pantalla X]
+- `shape: upload` -> el usuario SUBE ARCHIVOS (videos, capturas, docs):
 
-El usuario hace doble-click en ese nodo: es un CHECKLIST (listas -> elementos ->
-archivos). Tus `items:` aparecen como una lista para que suba contenido a cada uno.
-Cuando completa todo, el nodo pasa solo a `status: done`. El detalle del progreso
-queda en el attr `buzon` (base64-JSON, no lo edites). Cuando vuelvas a leer el
-diagrama vas a ver el progreso de cada elemento -> sabes que ya subio.
+      Evidencia [shape: upload, label: Subir progreso, items: video de la seña HOLA; captura de la pantalla X]
+
+- `shape: form` -> el usuario RESPONDE TEXTO (decisiones, preferencias, criterios):
+
+      Decisiones [shape: form, label: Preguntas de diseño, items: que stack preferis; web o mobile primero]
+
+Todos los buzones aparecen juntos en la pestania "Tareas" de la app: el usuario
+avanza tarea por tarea (la camara salta al nodo) y completa cada elemento ahi
+mismo. Cada buzon es un CHECKLIST (listas -> elementos): tus `items:` aparecen
+como una lista "Pedidos". Cuando completa todo, el nodo pasa solo a
+`status: done`. El detalle queda en el attr `buzon` (base64-JSON, no lo edites a
+mano): al volver a leer el diagrama ves que archivos subio y que respondio.
 
 ## Escribir (al implementar)
 En el nodo: pone `status: done`, agrega `file:` con lo que tocaste, y quita

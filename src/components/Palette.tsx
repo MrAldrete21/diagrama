@@ -14,6 +14,7 @@ const SHAPE_LABELS: Record<Shape, string> = {
   note: 'Note',
   image: 'Image',
   upload: 'Buzon',
+  form: 'Texto',
 };
 
 export function Palette({
@@ -256,6 +257,21 @@ function ShapePreview({ shape }: { shape: Shape }) {
             stroke={stroke}
             strokeWidth="1.5"
             strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      );
+    case 'form':
+      return (
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <line x1="2" y1="3.5" x2="11" y2="3.5" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="2" y1="8" x2="8" y2="8" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="2" y1="12.5" x2="9.5" y2="12.5" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" />
+          <path
+            d="M14 5.5 L10.8 8.7 L10.2 10.8 L12.3 10.2 L15.5 7 Z"
+            fill="none"
+            stroke={stroke}
+            strokeWidth="1.3"
             strokeLinejoin="round"
           />
         </svg>

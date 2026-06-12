@@ -22,6 +22,7 @@ import { LinterPanel } from './components/LinterPanel';
 import { SnapshotPanel } from './components/SnapshotPanel';
 import { FilesPanel } from './components/FilesPanel';
 import { UploadNodeModal } from './components/UploadNodeModal';
+import { TasksPanel } from './components/TasksPanel';
 import { encodeBuzon, computeBuzonStatus } from './buzon/buzon';
 import type { BuzonData } from './parser/types';
 import { RepoFilePicker } from './components/RepoFilePicker';
@@ -134,8 +135,10 @@ function App() {
   const [linterOpen, setLinterOpen] = useState(false);
   const [snapshotsOpen, setSnapshotsOpen] = useState(false);
   const [filesPanelOpen, setFilesPanelOpen] = useState(false);
-  // Nodo "buzon de progreso" cuya interfaz de subida esta abierta (shape: upload).
+  // Nodo buzon cuya interfaz esta abierta (shape: upload | form).
   const [uploadNodeId, setUploadNodeId] = useState<string | null>(null);
+  // Pestania "Tareas" (lo que el modelo requiere del usuario: nodos buzon).
+  const [tasksPanelOpen, setTasksPanelOpen] = useState(false);
   const [transform, setTransform] = useState<Transform>({ tx: 0, ty: 0, scale: 1 });
   const [recentColors, setRecentColors] = useState<string[]>([]);
   const [menuFocused, setMenuFocused] = useState(false);
@@ -792,11 +795,14 @@ function App() {
   const handleNodeDoubleClick = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    // Nodo "buzon de progreso": doble-click abre su interfaz de subida en vez de
+    // Nodos buzon (archivos / texto): doble-click abre su interfaz en vez de
     // editar el label.
-    if (ast.type === 'flowchart' && ast.nodes.find((n) => n.id === id)?.shape === 'upload') {
-      setUploadNodeId(id);
-      return;
+    if (ast.type === 'flowchart') {
+      const shape = ast.nodes.find((n) => n.id === id)?.shape;
+      if (shape === 'upload' || shape === 'form') {
+        setUploadNodeId(id);
+        return;
+      }
     }
     startLabelEdit(id, false);
   };
@@ -3012,6 +3018,7 @@ function App() {
                 onLint={() => setLinterOpen((p) => !p)}
                 onSnapshots={() => setSnapshotsOpen((p) => !p)}
                 onFiles={() => setFilesPanelOpen((p) => !p)}
+                onTasks={() => setTasksPanelOpen((p) => !p)}
               />
             </div>
           )}
@@ -3226,6 +3233,21 @@ function App() {
             setSelectedEdgeKey(null);
           }}
           onClose={() => setFilesPanelOpen(false)}
+        />
+      )}
+      {tasksPanelOpen && ast.type === 'flowchart' && (
+        <TasksPanel
+          nodes={ast.nodes}
+          onSetBuzon={handleSetBuzon}
+          onFocusNode={(id) => {
+            setSelectedIds(new Set([id]));
+            setSelectedEdgeKey(null);
+            if (layoutResult?.kind === 'flowchart') {
+              const n = layoutResult.nodes.find((ln) => ln.id === id);
+              if (n) panZoomRef.current?.centerOn(n.x, n.y);
+            }
+          }}
+          onClose={() => setTasksPanelOpen(false)}
         />
       )}
       {uploadNodeId &&

@@ -97,15 +97,24 @@ Formas (shape):
     - diamond: ideal para decisiones / condiciones
     - cylinder: bases de datos / storage
     - circle/ellipse: inicio / fin / estados
-    - upload: "buzon de progreso". Checklist donde el USUARIO sube archivos que vos
-      le pedis. Estructura: listas -> elementos -> archivos. Doble-click sobre el
-      nodo abre la interfaz (crear listas, agregar elementos, subir contenido). Un
-      elemento se completa al subir un archivo; la lista cuando todos sus elementos
-      estan; el nodo pasa a status: done solo cuando TODAS las listas estan completas.
-      Para PEDIR: pone en `items:` lo que necesitas (un pedido por ;) -> el nodo los
-      ofrece como una lista "Pedidos" para que el usuario suba. El checklist completo
-      se guarda en el attr `buzon` (base64-JSON, NO lo edites a mano).
+    - upload: "buzon de progreso" (ARCHIVOS). Checklist donde el USUARIO sube
+      archivos que vos le pedis. Estructura: listas -> elementos -> archivos.
+      Doble-click sobre el nodo abre la interfaz (crear listas, agregar elementos,
+      subir contenido). Un elemento se completa al subir un archivo; la lista
+      cuando todos sus elementos estan; el nodo pasa a status: done solo cuando
+      TODAS las listas estan completas. Para PEDIR: pone en `items:` lo que
+      necesitas (un pedido por ;) -> el nodo los ofrece como una lista "Pedidos".
+      El checklist completo se guarda en el attr `buzon` (base64-JSON, NO lo
+      edites a mano).
       Ej: PruebaSenas [shape: upload, label: Subir senas, items: video HOLA; video GRACIAS]
+    - form: "buzon de texto" (PREGUNTAS). Igual que upload pero el usuario completa
+      cada elemento ESCRIBIENDO una respuesta de texto (no subiendo archivos).
+      Usalo para preguntarle cosas: decisiones, preferencias, criterios. Las
+      respuestas te llegan en el prompt/diagrama (dentro del attr `buzon`).
+      Misma cascada de completitud y mismo `items:` para sembrar preguntas.
+      Ej: Decisiones [shape: form, label: Preguntas, items: que stack preferis; color principal]
+      El usuario ve TODOS los buzones juntos en la pestania "Tareas" de la app y
+      los completa desde ahi (la camara salta al nodo asignado).
 
 Iconos utiles (icon):
     user, database, server, globe, lock, api, code, file

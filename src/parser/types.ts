@@ -1,10 +1,10 @@
 export type Direction = 'TB' | 'LR' | 'BT' | 'RL';
 
-// === Buzon de progreso (shape: upload) ===
-// Un elemento de una lista: nombre + archivos subidos (rutas relativas al repo).
-export type BuzonItem = { id: string; name: string; files: string[] };
-// Una lista del buzon: nombre + elementos. Completa = todos sus elementos tienen
-// al menos un archivo.
+// === Buzon de progreso (shape: upload = archivos, shape: form = texto) ===
+// Un elemento de una lista: nombre + archivos subidos (rutas relativas al repo)
+// y/o respuesta de texto (buzon de texto). Completo = >=1 archivo o texto no vacio.
+export type BuzonItem = { id: string; name: string; files: string[]; text?: string };
+// Una lista del buzon: nombre + elementos. Completa = todos sus elementos completos.
 export type BuzonList = { id: string; name: string; items: BuzonItem[] };
 // El checklist completo del nodo. Nodo done = todas las listas completas.
 export type BuzonData = { lists: BuzonList[] };
@@ -19,7 +19,8 @@ export type Shape =
   | 'list'
   | 'note'
   | 'image'
-  | 'upload';
+  | 'upload'
+  | 'form';
 
 export const SHAPES: readonly Shape[] = [
   'rectangle',
@@ -32,6 +33,7 @@ export const SHAPES: readonly Shape[] = [
   'note',
   'image',
   'upload',
+  'form',
 ];
 
 export type ListStyle = 'bullets' | 'numbered';

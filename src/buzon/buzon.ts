@@ -37,13 +37,15 @@ export function normalizeBuzon(obj: unknown): BuzonData {
         id: typeof lr?.id === 'string' ? lr.id : newId('l'),
         name: typeof lr?.name === 'string' ? lr.name : 'Lista',
         items: items.map((it): BuzonItem => {
-          const ir = it as { id?: unknown; name?: unknown; files?: unknown };
+          const ir = it as { id?: unknown; name?: unknown; files?: unknown; text?: unknown };
           const files = Array.isArray(ir?.files) ? ir.files.filter((f): f is string => typeof f === 'string') : [];
-          return {
+          const item: BuzonItem = {
             id: typeof ir?.id === 'string' ? ir.id : newId('i'),
             name: typeof ir?.name === 'string' ? ir.name : 'Elemento',
             files,
           };
+          if (typeof ir?.text === 'string' && ir.text.trim()) item.text = ir.text;
+          return item;
         }),
       };
     }),
@@ -58,7 +60,9 @@ export function newId(prefix: string): string {
   return `${prefix}${idCounter.toString(36)}${rnd}`;
 }
 
-export const itemComplete = (it: BuzonItem): boolean => it.files.length > 0;
+// Completo = subio >=1 archivo (buzon de archivos) o escribio texto (buzon de texto).
+export const itemComplete = (it: BuzonItem): boolean =>
+  it.files.length > 0 || !!it.text?.trim();
 
 // Lista completa = tiene elementos y todos tienen al menos un archivo.
 export const listComplete = (l: BuzonList): boolean =>

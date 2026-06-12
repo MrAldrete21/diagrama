@@ -279,8 +279,9 @@ function flowchartNodeSize(
     }
     case 'image':
       return { width: 200, height: 150 };
-    case 'upload': {
-      // Nodo "buzon de progreso": icono + label + contador. Ancho segun label.
+    case 'upload':
+    case 'form': {
+      // Nodos "buzon" (archivos / texto): icono + label + contador. Ancho segun label.
       const titleW = node.label.length * CHAR_WIDTH + NODE_PADDING_X * 2;
       return { width: Math.max(200, titleW), height: 96 };
     }

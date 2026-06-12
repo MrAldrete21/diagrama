@@ -25,6 +25,7 @@ export function ShortcutBar({
   onLint,
   onSnapshots,
   onFiles,
+  onTasks,
 }: {
   onSearch: () => void;
   onSolver: () => void;
@@ -33,12 +34,14 @@ export function ShortcutBar({
   onLint: () => void;
   onSnapshots: () => void;
   onFiles: () => void;
+  onTasks: () => void;
 }) {
   const groups: Item[][] = [
     [
       { label: 'Buscar nodos', combo: 'Ctrl+K', icon: <SearchIcon />, onClick: onSearch },
       { label: 'Solver', combo: '⇧P', icon: <SolverIcon />, onClick: onSolver },
       { label: 'Generar prompt', combo: '⇧G', icon: <PromptIcon />, onClick: onPrompt },
+      { label: 'Tareas del modelo', icon: <TasksIcon />, onClick: onTasks },
       { label: 'Archivos / progreso', icon: <FilesIcon />, onClick: onFiles },
       { label: 'Lint del diagrama', icon: <LintIcon />, onClick: onLint },
       { label: 'Snapshots / versiones', icon: <SnapshotIcon />, onClick: onSnapshots },
@@ -121,6 +124,17 @@ function PromptIcon() {
       <rect x="1.5" y="2.5" width="13" height="11" rx="2" stroke="currentColor" strokeWidth="1.3" />
       <path d="M4 6 L6 8 L4 10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
       <line x1="7.5" y1="10.5" x2="11" y2="10.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function TasksIcon() {
+  return (
+    <svg width={SZ} height={SZ} viewBox="0 0 16 16" fill="none">
+      <rect x="2.5" y="2" width="11" height="12.5" rx="1.5" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M5 6 L6.5 7.5 L9 4.8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+      <line x1="5" y1="10.5" x2="11" y2="10.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+      <line x1="5" y1="12.5" x2="9" y2="12.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
     </svg>
   );
 }
