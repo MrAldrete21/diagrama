@@ -233,6 +233,18 @@ Partes de abajo quedaron viejas. Estado real:
   Excluidos del build (`tsconfig.app` exclude). Para el store hay que mockear
   localStorage + `vi.resetModules()` (corre migracion/loadInitial al importar).
 
+- **Design language estilo Claude/Anthropic**: paleta cálida en las CSS vars
+  (`App.css` `:root` + `[data-theme='dark']`). Claro = papel crema (`--bg #faf9f5`,
+  `--preview-bg #f5f4ee`), texto casi-negro cálido (`#1a1915`), acento **arcilla**
+  (`--clay #d97757`, constante en ambos temas). Oscuro = charcoal cálido (no azul).
+  highlight = clay, selected = teal (`#3d7068` / `#5ba697` en dark), primary = ink.
+  Wordmark del header + `.modal-header h2` en serif (`--font-serif`: Tiempos/Georgia).
+  El **buzón** (antes cyan) ahora es clay via `var(--clay)` → unifica con el acento
+  (temáticamente: el buzón = "Claude te pide algo"); la animacion is-requesting late
+  en clay. Monaco tiene sus temas (`Editor.tsx`) re-tinteados a la paleta calida.
+  `index.html` theme-color + manifest (`vite.config`) = clay. Re-skin = tocar las vars;
+  los colores semanticos de status (verde/ambar/rojo) se mantienen.
+
 ## Estructura
 
 ```
