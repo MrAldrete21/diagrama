@@ -2934,7 +2934,7 @@ kbd {
   fill: #0ea5e9;
 }
 
-/* Nodo "buzon de progreso" (shape: upload) */
+/* Nodo "buzon de progreso" (shape: upload | form) */
 .node-upload-shape {
   stroke-dasharray: 5 4;
 }
@@ -2943,6 +2943,47 @@ kbd {
 }
 .node-upload-count {
   fill: var(--text-muted);
+}
+
+/* Buzon con pedidos pendientes (is-requesting): el modelo espera input del
+   usuario -> el nodo "late" para llamar la atencion. Marching-ants en el borde
+   + halo pulsante cyan. Se apaga solo cuando se completa (no lleva is-requesting). */
+@keyframes buzon-march {
+  to {
+    stroke-dashoffset: -18;
+  }
+}
+@keyframes buzon-halo {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 1px rgba(14, 165, 233, 0.55));
+  }
+  50% {
+    filter: drop-shadow(0 0 7px rgba(14, 165, 233, 0.95));
+  }
+}
+.node-group.is-requesting {
+  animation: buzon-halo 1.5s ease-in-out infinite;
+}
+.node-group.is-requesting .node-upload-shape {
+  stroke: #0ea5e9;
+  stroke-width: 2;
+  animation: buzon-march 0.7s linear infinite;
+}
+.node-group.is-requesting .node-upload-icon {
+  animation: buzon-halo 1.5s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .node-group.is-requesting,
+  .node-group.is-requesting .node-upload-shape,
+  .node-group.is-requesting .node-upload-icon {
+    animation: none;
+  }
+  /* Sin movimiento: al menos resaltamos el borde para que se note el pendiente. */
+  .node-group.is-requesting .node-upload-shape {
+    stroke: #0ea5e9;
+    stroke-width: 2;
+  }
 }
 
 /* ===== Panel Archivos / Progreso ===== */

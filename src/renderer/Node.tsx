@@ -29,6 +29,21 @@ export function Node({
   isSelected?: boolean;
   showHandles?: boolean;
 }) {
+  // "Requesting": buzon (archivos/texto) con pedidos pendientes -> el modelo
+  // espera input del usuario. Late hasta que se completa (no anima si esta done
+  // ni si todavia no tiene pedidos). Si el modelo solo dejo `items:` (aun sin
+  // `buzon:`), todos cuentan como pendientes.
+  const isBuzon = node.shape === 'upload' || node.shape === 'form';
+  let isRequesting = false;
+  if (isBuzon) {
+    if (node.buzon) {
+      const p = buzonProgress(node.buzon);
+      isRequesting = p.totalItems > 0 && p.doneItems < p.totalItems;
+    } else {
+      isRequesting = !!node.items?.length;
+    }
+  }
+
   const className = [
     'node-group',
     isHighlighted ? 'is-highlighted' : '',
@@ -37,6 +52,7 @@ export function Node({
     node.promptHidden ? 'is-prompt-hidden' : '',
     node.status ? `status-${node.status}` : '',
     node.request ? 'is-request' : '',
+    isRequesting ? 'is-requesting' : '',
     node.shape === 'note' && !node.expanded ? 'is-note-collapsed' : '',
   ]
     .filter(Boolean)

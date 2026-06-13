@@ -63,7 +63,12 @@ Partes de abajo quedaron viejas. Estado real:
     checklist con completitud (el modelo ve que subiste). Crear: tool **Buzon** en la Palette,
     pestania **"buzon (progreso)"** del CustomBlockMenu (Shift+3, `CustomBlockApply` kind
     `upload`, su textarea siembra `items:`), o DSL directo. `handleNodeDoubleClick` detecta
-    `shape==='upload'|'form'` y abre `uploadNodeId`.
+    `shape==='upload'|'form'` y abre `uploadNodeId`. **Animacion "is-requesting"**:
+    un buzon con pedidos pendientes (items sin completar, o `items:` aun sin `buzon`)
+    LATE para avisar que el modelo espera input — marching-ants en el borde dasheado
+    (`@keyframes buzon-march`) + halo cyan pulsante (`buzon-halo`). Se calcula en
+    `Node.tsx` (clase `is-requesting`) y para sola al completarse (status done = sin
+    pendientes). Respeta `prefers-reduced-motion` (sin animacion, solo borde resaltado).
   - **Descripcion por elemento del buzon**: `BuzonItem.desc?` — que se pide exactamente.
     En la UI: boton ✎ en cada elemento abre/cierra el editor (textarea dashed, guarda al
     blur). El modelo la siembra con `items: nombre | descripcion` (seedBuzon parte por el
