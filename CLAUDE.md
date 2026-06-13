@@ -75,6 +75,11 @@ Partes de abajo quedaron viejas. Estado real:
     min-content ~0) y el scroll exterior nunca aparecia. `overscroll-behavior: contain`
     en los tres cuerpos evita que la rueda se escape al canvas. `main.tsx` desregistra
     service workers en dev (un SW viejo de un build PWA serviria la app vieja).
+    En la pestania Tareas el `BuzonChecklist` embebido NO debe crear su propio scroll
+    (`.tasks-card-body .buzon-body { overflow: visible; flex: none }`): si no, ese
+    contenedor interno (que cabe, la card crece) se traga el wheel y con
+    `overscroll-behavior: contain` no lo encadena al `.tasks-body` -> el scroll de
+    rueda sobre los elementos no andaba, solo la barra. El unico scroller es `.tasks-body`.
   - **Buzon de TEXTO (`shape: form`)**: gemelo del buzon de archivos pero cada elemento se
     completa ESCRIBIENDO una respuesta (textarea, se guarda al blur) en vez de subiendo
     archivos. `BuzonItem.text?` en types; `itemComplete` = files>0 || text no vacio. Misma

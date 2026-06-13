@@ -3543,8 +3543,17 @@ kbd {
   padding: 0 10px 8px;
   border-top: 1px solid var(--border);
 }
+/* Embebido en una card de Tareas: el checklist NO debe crear su propio scroll.
+   Si lo hace, como su contenido cabe (la card crece) el contenedor interno se
+   traga el wheel y (con overscroll-behavior: contain) no lo encadena al
+   .tasks-body exterior -> el scroll de rueda sobre los elementos no funciona,
+   solo la barra. Lo dejamos sin scroll: el unico scroller es .tasks-body. */
 .tasks-card-body .buzon-body {
   padding-top: 8px;
+  flex: none;
+  min-height: auto;
+  overflow: visible;
+  overscroll-behavior: auto;
 }
 
 /* ===== Content editor (Shift+T) ===== */
