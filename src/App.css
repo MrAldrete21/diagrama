@@ -141,7 +141,7 @@
 /* Indicador de sync con el archivo de /diagrams */
 .sync-badge {
   position: fixed;
-  top: 12px;
+  bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 50;
