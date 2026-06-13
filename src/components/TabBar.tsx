@@ -52,7 +52,7 @@ export function TabBar({
       <button
         type="button"
         className="tab-add"
-        onClick={onAdd}
+        onClick={() => onAdd()}
         title="Nueva pestania"
         aria-label="nueva pestania"
       >

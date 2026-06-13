@@ -444,7 +444,10 @@ export const useDocStore = create<DocStore>((set, get) => {
       const state = get();
       const docs = syncActive(state);
       const id = newTabId();
-      const src = source ?? DEFAULT_SOURCE;
+      // Guard: si nos pasan algo que no es string (ej el evento del onClick del
+      // boton "+"), lo ignoramos y abrimos un diagrama en blanco.
+      const validSource = typeof source === 'string' ? source : undefined;
+      const src = validSource ?? DEFAULT_SOURCE;
       const fresh: DocState = {
         source: src,
         manualPositions: {},
@@ -452,7 +455,7 @@ export const useDocStore = create<DocStore>((set, get) => {
         history: emptyHistory(),
       };
       docs[id] = fresh;
-      const title = (source ? deriveTitle(source) : null) ?? `Diagrama ${state.tabs.length + 1}`;
+      const title = (validSource ? deriveTitle(validSource) : null) ?? `Diagrama ${state.tabs.length + 1}`;
       set({
         docs,
         tabs: [...state.tabs, { id, title }],
