@@ -150,8 +150,16 @@ ETIQUETAS SEMANTICAS (labels)  -> sirven para el "prompt generator" interno
 -------------------------------------------------------------------------
     Nodo [labels: feature]
 Valores: feature, constraint, goal, risk, todo, idea, question, blocked,
-         done, input, output, decision, ai-decision, ai-decision-user
+         done, input, output, decision, ai-decision, ai-decision-user, review
 (podes inventar etiquetas custom; tambien se aceptan)
+
+Workflow Ai decision / Review (planear antes de implementar):
+  - `ai-decision` / `ai-decision-user`: nodo donde la IA decide el diseno. Cuando
+    veas esta label NO implementes codigo: primero PROPONE editando el diagrama
+    (agrega/edita nodos con tu propuesta) y marca cada nodo nuevo/editado con la
+    label `review`. Reenvia el diagrama y pedile al usuario que lo revise.
+  - `review`: cambio propuesto pendiente de aprobacion. El nodo LATE (animacion) en
+    la app. Al aprobar el usuario, implementas y QUITAS la label `review`.
 
 EJEMPLO COMPLETO (flowchart)
 ----------------------------

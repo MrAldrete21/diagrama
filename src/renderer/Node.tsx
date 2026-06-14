@@ -33,6 +33,10 @@ export function Node({
   // espera input del usuario. Late hasta que se completa (no anima si esta done
   // ni si todavia no tiene pedidos). Si el modelo solo dejo `items:` (aun sin
   // `buzon:`), todos cuentan como pendientes.
+  // "Review": nodo propuesto por el modelo (tras una Ai decision) pendiente de
+  // aprobacion -> late suave hasta que se quita la label.
+  const isReview = !!node.labels?.some((l) => l.toLowerCase() === 'review');
+
   const isBuzon = node.shape === 'upload' || node.shape === 'form';
   let isRequesting = false;
   if (isBuzon) {
@@ -53,6 +57,7 @@ export function Node({
     node.status ? `status-${node.status}` : '',
     node.request ? 'is-request' : '',
     isRequesting ? 'is-requesting' : '',
+    isReview ? 'is-review' : '',
     node.shape === 'note' && !node.expanded ? 'is-note-collapsed' : '',
   ]
     .filter(Boolean)
@@ -251,8 +256,13 @@ function LabelChips({
     >
       {positions.map((p, i) => {
         const def = labelDef(p.label);
+        const isReviewChip = p.label.toLowerCase() === 'review';
         return (
-          <g key={i} transform={`translate(${p.x}, ${p.y})`}>
+          <g
+            key={i}
+            transform={`translate(${p.x}, ${p.y})`}
+            className={isReviewChip ? 'label-chip-review' : undefined}
+          >
             <rect
               width={p.w}
               height={CHIP_H}

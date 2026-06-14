@@ -1159,18 +1159,38 @@
 }
 
 .help-body {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 18px;
   padding: 18px 22px;
   max-height: 78vh;
   overflow-y: auto;
 }
 
-@media (max-width: 760px) {
-  .help-body {
-    grid-template-columns: 1fr;
-  }
+/* Grid de cards (atajos + sintaxis) */
+.help-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+  gap: 12px;
+}
+.help-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--bg-alt);
+  min-width: 0;
+}
+.help-card-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.help-ico {
+  flex: 0 0 auto;
+  color: var(--clay);
 }
 
 .help-section {
@@ -2186,6 +2206,32 @@ kbd {
   border-top: 1px solid var(--border);
 }
 
+/* Panel "exportar": seccion de export de imagen arriba del prompt */
+.export-section {
+  padding-bottom: 10px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.export-section-title {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.export-btns {
+  display: flex;
+  gap: 6px;
+}
+.export-btns .btn {
+  flex: 1 1 0;
+}
+/* Boton "exportar" a la izquierda del header */
+.header-export {
+  margin-right: 2px;
+}
+
 .promptgen-scope {
   display: flex;
   gap: 4px;
@@ -2993,6 +3039,40 @@ kbd {
   .node-group.is-requesting .node-upload-shape {
     stroke: var(--clay);
     stroke-width: 2;
+  }
+}
+
+/* Nodo "review": propuesto por el modelo tras una Ai decision, pendiente de
+   aprobacion -> late suave (halo ambar) hasta que se quita la label. El chip
+   "review" tambien pulsa. */
+@keyframes review-halo {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 1px rgba(217, 119, 87, 0));
+  }
+  50% {
+    filter: drop-shadow(0 0 6px rgba(202, 138, 4, 0.85));
+  }
+}
+@keyframes review-chip {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+.node-group.is-review {
+  animation: review-halo 1.8s ease-in-out infinite;
+}
+.label-chip-review {
+  animation: review-chip 1.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .node-group.is-review,
+  .label-chip-review {
+    animation: none;
   }
 }
 

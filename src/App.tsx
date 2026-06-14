@@ -347,6 +347,13 @@ function App() {
     setSelectedIds(new Set([firstId]));
   }, [layoutResult]);
 
+  // Recuerda el ultimo nodo enfocado (seleccion de 1). Tras Esc (seleccion vacia)
+  // WASD retoma desde aca en vez de saltar al primer nodo.
+  const lastFocusedNodeRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (selectedIds.size === 1) lastFocusedNodeRef.current = Array.from(selectedIds)[0];
+  }, [selectedIds]);
+
   // Auto-focus: when enabled and exactly one node is selected, center the camera on it.
   // Tracks last-centered id to avoid re-centering on every drag/resize/source change.
   const lastCenteredRef = useRef<string | null>(null);
@@ -999,24 +1006,27 @@ function App() {
     const NEW_W = 120;
     const NEW_H = 48;
     const SPACING = 50;
+    // Snapeamos SOLO el eje en el que se mueve el nodo nuevo; el eje perpendicular
+    // queda exactamente igual al del origen para que el nuevo quede colineal (en
+    // angulo recto). Redondear ambos ejes desalineaba el nuevo cuando el origen
+    // no estaba en grid -> el nodo salia "chueco".
+    const snap = (v: number) => Math.round(v / GRID) * GRID;
     let nx = sourceNode.x;
     let ny = sourceNode.y;
     switch (direction) {
       case 'right':
-        nx = sourceNode.x + sourceNode.width / 2 + SPACING + NEW_W / 2;
+        nx = snap(sourceNode.x + sourceNode.width / 2 + SPACING + NEW_W / 2);
         break;
       case 'left':
-        nx = sourceNode.x - sourceNode.width / 2 - SPACING - NEW_W / 2;
+        nx = snap(sourceNode.x - sourceNode.width / 2 - SPACING - NEW_W / 2);
         break;
       case 'down':
-        ny = sourceNode.y + sourceNode.height / 2 + SPACING + NEW_H / 2;
+        ny = snap(sourceNode.y + sourceNode.height / 2 + SPACING + NEW_H / 2);
         break;
       case 'up':
-        ny = sourceNode.y - sourceNode.height / 2 - SPACING - NEW_H / 2;
+        ny = snap(sourceNode.y - sourceNode.height / 2 - SPACING - NEW_H / 2);
         break;
     }
-    nx = Math.round(nx / GRID) * GRID;
-    ny = Math.round(ny / GRID) * GRID;
 
     // Pin every existing node so adding doesn't reflow the layout
     lockOtherPositions(sourceId);
@@ -1073,24 +1083,25 @@ function App() {
     const NEW_W = 120;
     const NEW_H = 48;
     const SPACING = 50;
+    // Snap solo del eje en el que se mueve (ver handleAddConnected): el nuevo
+    // queda colineal con el origen, en angulo recto.
+    const snap = (v: number) => Math.round(v / GRID) * GRID;
     let nx = sourceNode.x;
     let ny = sourceNode.y;
     switch (direction) {
       case 'right':
-        nx = sourceNode.x + sourceNode.width / 2 + SPACING + NEW_W / 2;
+        nx = snap(sourceNode.x + sourceNode.width / 2 + SPACING + NEW_W / 2);
         break;
       case 'left':
-        nx = sourceNode.x - sourceNode.width / 2 - SPACING - NEW_W / 2;
+        nx = snap(sourceNode.x - sourceNode.width / 2 - SPACING - NEW_W / 2);
         break;
       case 'down':
-        ny = sourceNode.y + sourceNode.height / 2 + SPACING + NEW_H / 2;
+        ny = snap(sourceNode.y + sourceNode.height / 2 + SPACING + NEW_H / 2);
         break;
       case 'up':
-        ny = sourceNode.y - sourceNode.height / 2 - SPACING - NEW_H / 2;
+        ny = snap(sourceNode.y - sourceNode.height / 2 - SPACING - NEW_H / 2);
         break;
     }
-    nx = Math.round(nx / GRID) * GRID;
-    ny = Math.round(ny / GRID) * GRID;
 
     lockOtherPositions(sourceId);
     if (!manualPositions[sourceId]) {
@@ -2598,7 +2609,11 @@ function App() {
           const all = layoutResult.nodes;
           if (all.length === 0) return;
           if (selectedIds.size !== 1) {
-            setSelectedIds(new Set([all[0].id]));
+            // Sin seleccion (ej tras Esc): retomar desde el ultimo nodo enfocado
+            // si sigue existiendo; si no, el primero.
+            const last = lastFocusedNodeRef.current;
+            const resume = last && all.some((n) => n.id === last) ? last : all[0].id;
+            setSelectedIds(new Set([resume]));
             return;
           }
           const curId = Array.from(selectedIds)[0];
@@ -2763,7 +2778,6 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tool, editingNodeId, selectedIds, showExamples, showHelp, source, ast, manualPositions, manualSizes, menuFocused, nodeMenu, solverOpen, promptGenOpen, singleSelectedNode, selectedEdgeKey, expandedNoteIds, conditionalDir, filesEditId, testsEditId]);
 
-  const hasManual = Object.keys(manualPositions).length > 0 || Object.keys(manualSizes).length > 0;
   const canvasCursor =
     tool === 'select' ? undefined : tool === 'connect' ? 'pointer' : 'crosshair';
   const isFlowchart = layoutResult?.kind === 'flowchart';
@@ -2841,6 +2855,14 @@ function App() {
         </div>
       )}
       {!canvasOnly && <header className="header">
+        <button
+          type="button"
+          className={`btn btn-ghost header-export ${promptGenOpen ? 'is-active' : ''}`}
+          onClick={() => setPromptGenOpen((p) => !p)}
+          title="Exportar (imagen SVG/PNG + prompt) — Shift+G"
+        >
+          exportar
+        </button>
         <h1>diagrama</h1>
         <span className="header-sub">{diagramTypeLabel}</span>
         <div className="spacer" />
@@ -2860,16 +2882,6 @@ function App() {
             onPickRecent={handlePickRecent}
             onForgetRecent={handleForgetRecent}
           />
-          {hasManual && (
-            <button
-              type="button"
-              className="btn btn-ghost"
-              onClick={clearManualPositions}
-              title="Reset posiciones y tamaños manuales"
-            >
-              reset layout
-            </button>
-          )}
           <button
             type="button"
             className="btn btn-ghost"
@@ -2958,22 +2970,6 @@ function App() {
           >
             fit
           </button>
-          <button
-            type="button"
-            className="btn"
-            onClick={handleExportSvg}
-            title="Exportar SVG (Ctrl+S)"
-          >
-            SVG
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleExportPng}
-            title="Exportar PNG (Ctrl+Shift+S)"
-          >
-            PNG
-          </button>
         </div>
       </header>}
       <TabBar
@@ -3014,7 +3010,6 @@ function App() {
                 onSearch={() => setNodeSearchOpen((v) => !v)}
                 onSolver={() => setSolverOpen((p) => !p)}
                 onPrompt={() => setPromptGenOpen((p) => !p)}
-                onExamples={() => setShowExamples(true)}
                 onLint={() => setLinterOpen((p) => !p)}
                 onSnapshots={() => setSnapshotsOpen((p) => !p)}
                 onFiles={() => setFilesPanelOpen((p) => !p)}
@@ -3199,6 +3194,8 @@ function App() {
           isFlowchart={ast.type === 'flowchart'}
           buildPrompt={buildScopedPrompt}
           onCopy={handleCopyPrompt}
+          onExportSvg={handleExportSvg}
+          onExportPng={handleExportPng}
           onClose={() => setPromptGenOpen(false)}
         />
       )}

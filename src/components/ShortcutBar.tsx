@@ -21,7 +21,6 @@ export function ShortcutBar({
   onSearch,
   onSolver,
   onPrompt,
-  onExamples,
   onLint,
   onSnapshots,
   onFiles,
@@ -30,7 +29,6 @@ export function ShortcutBar({
   onSearch: () => void;
   onSolver: () => void;
   onPrompt: () => void;
-  onExamples: () => void;
   onLint: () => void;
   onSnapshots: () => void;
   onFiles: () => void;
@@ -40,12 +38,11 @@ export function ShortcutBar({
     [
       { label: 'Buscar nodos', combo: 'Ctrl+K', icon: <SearchIcon />, onClick: onSearch },
       { label: 'Solver', combo: '⇧P', icon: <SolverIcon />, onClick: onSolver },
-      { label: 'Generar prompt', combo: '⇧G', icon: <PromptIcon />, onClick: onPrompt },
+      { label: 'Exportar (imagen + prompt)', combo: '⇧G', icon: <PromptIcon />, onClick: onPrompt },
       { label: 'Tareas del modelo', icon: <TasksIcon />, onClick: onTasks },
       { label: 'Archivos / progreso', icon: <FilesIcon />, onClick: onFiles },
       { label: 'Lint del diagrama', icon: <LintIcon />, onClick: onLint },
       { label: 'Snapshots / versiones', icon: <SnapshotIcon />, onClick: onSnapshots },
-      { label: 'Ejemplos', icon: <ExamplesIcon />, onClick: onExamples },
     ],
     [
       { label: 'Editar label', combo: '⇧Q', icon: <EditIcon />, onClick: fireKey({ code: 'KeyQ', key: 'q', shiftKey: true }) },
@@ -163,17 +160,6 @@ function SnapshotIcon() {
     <svg width={SZ} height={SZ} viewBox="0 0 16 16" fill="none">
       <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.3" />
       <path d="M8 4.5 V8 L10.5 9.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ExamplesIcon() {
-  return (
-    <svg width={SZ} height={SZ} viewBox="0 0 16 16" fill="none">
-      <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="9" y="1.5" width="5.5" height="5.5" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="1.5" y="9" width="5.5" height="5.5" rx="1" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="9" y="9" width="5.5" height="5.5" rx="1" stroke="currentColor" strokeWidth="1.3" />
     </svg>
   );
 }

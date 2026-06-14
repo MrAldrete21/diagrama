@@ -1,161 +1,129 @@
+import type { ReactNode } from 'react';
+
 type Shortcut = { keys: string; desc: string };
-type Group = { title: string; items: Shortcut[] };
+type Group = { title: string; icon: ReactNode; items: Shortcut[] };
+
+// Iconitos chicos para escanear cada grupo de un vistazo.
+const I = (d: string, fill = false) => (
+  <svg className="help-ico" width="15" height="15" viewBox="0 0 16 16" fill="none">
+    <path
+      d={d}
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      fill={fill ? 'currentColor' : 'none'}
+    />
+  </svg>
+);
+const IcoNav = I('M8 1 L10 4 L6 4 Z M8 15 L6 12 L10 12 Z M1 8 L4 6 L4 10 Z M15 8 L12 10 L12 6 Z', true);
+const IcoEdit = I('M10.5 2.5 L13.5 5.5 L5.5 13.5 L2.5 13.5 L2.5 10.5 Z');
+const IcoMenu = I('M2 4 H14 M2 8 H14 M2 12 H10');
+const IcoAlign = I('M2 2 V14 M5 4 H13 M5 8 H10 M5 12 H13');
+const IcoFile = I('M4 1.5 H10 L13 4.5 V14 H4 Z M10 1.5 V4.5 H13');
+const IcoClip = I('M5.5 2 H10.5 V4 H5.5 Z M4 3 H3 V14 H13 V3 H12');
+const IcoView = I('M1 8 C3 4 13 4 15 8 C13 12 3 12 1 8 Z M8 6 a2 2 0 1 0 0.01 0');
+const IcoSyntax = I('M6 4 L2.5 8 L6 12 M10 4 L13.5 8 L10 12');
 
 const GROUPS: Group[] = [
   {
     title: 'Navegacion',
+    icon: IcoNav,
     items: [
-      { keys: 'W / A / S / D', desc: 'Mover seleccion al vecino arriba / izq / abajo / der' },
-      { keys: 'Ctrl + A', desc: 'Seleccionar todos los nodos' },
-      { keys: 'Shift + click', desc: 'Multi-select toggle' },
-      { keys: 'Shift + drag (canvas)', desc: 'Marquee selection (rectangulo de seleccion)' },
-      { keys: 'Ctrl + Shift + drag', desc: 'Marquee additive (suma a seleccion existente)' },
-      { keys: 'Esc', desc: 'Deselect / cancel edit / fall-through cierre de menus' },
-      { keys: 'Shift (tap solo)', desc: 'Cierra el menu/popup top-most' },
+      { keys: 'W A S D', desc: 'Mover seleccion al vecino (arriba / izq / abajo / der). Tras Esc retoma del ultimo nodo.' },
+      { keys: 'Ctrl + A', desc: 'Seleccionar todo' },
+      { keys: 'Shift + click', desc: 'Multi-select' },
+      { keys: 'Shift + drag', desc: 'Marquee (rectangulo de seleccion)' },
+      { keys: 'Esc', desc: 'Deselect / cancelar / cerrar menus' },
     ],
   },
   {
     title: 'Crear / editar',
+    icon: IcoEdit,
     items: [
-      { keys: 'Shift + W / A / S / D', desc: 'Crear nodo conectado en esa direccion' },
-      { keys: 'F + W / A / S / D', desc: 'Crear nodo conectado + abrir LabelPicker en modo create' },
-      { keys: 'Shift + / + W/A/S/D', desc: 'Connect condicional: barra para la condicion + Enter (nodo nuevo, o solo el edge si hay vecino)' },
-      { keys: 'Shift + Q', desc: 'Editar label (mantiene texto)' },
-      { keys: 'Shift + E', desc: 'Editar label (borra texto, vacio)' },
-      { keys: 'Doble-click nodo', desc: 'Editar label inline' },
-      { keys: 'Drag nodo seleccionado', desc: 'Mover (snap a otros nodos + grid; Shift desactiva)' },
-      { keys: 'Drag con multi-select', desc: 'Mueve toda la seleccion preservando offsets' },
-      { keys: '/ + W / A / S / D', desc: 'Nudge nodo seleccionado en 20px (1 grid)' },
-      { keys: 'Drag esquina', desc: 'Resize del nodo (Shift desactiva snap)' },
-      { keys: 'Delete / Cmd+Backspace', desc: 'Eliminar nodos o edge seleccionada' },
-      { keys: 'Enter (en NOTE)', desc: 'Expand / collapse del bloque note' },
+      { keys: 'Shift + W A S D', desc: 'Crear nodo conectado en esa direccion' },
+      { keys: 'F + W A S D', desc: 'Crear nodo + elegir su label' },
+      { keys: 'Shift + Q / Shift + E', desc: 'Editar label (mantener / vaciar texto)' },
+      { keys: 'Doble-click', desc: 'Editar label inline' },
+      { keys: '/ + W A S D', desc: 'Nudge del nodo 20px (1 grid)' },
+      { keys: 'Delete', desc: 'Eliminar nodo(s) o edge' },
     ],
   },
   {
-    title: 'Menus / popups',
+    title: 'Menus del nodo',
+    icon: IcoMenu,
     items: [
-      { keys: 'Shift + 1', desc: 'Toggle auto-focus (camara sigue al seleccionado)' },
-      { keys: 'Shift + 2', desc: 'Abrir / cerrar personalization menu (color, shape, icon)' },
-      { keys: 'Shift + 3', desc: 'CustomBlock menu (lista / note / image)' },
-      { keys: 'Shift + 4', desc: 'AttributePicker (toggle progress / quantity / icon)' },
-      { keys: 'Shift + 5', desc: 'AttributeEditor (editar valores actuales)' },
-      { keys: 'Shift + F', desc: 'LabelPicker (Feature, Constraint, Ai decision, etc.). R o Shift+click edita el prompt de la label' },
-      { keys: 'Shift + R', desc: 'Constraints (marcar nodo y aplicar a otros; afecta el prompt)' },
-      { keys: 'Shift + T', desc: 'Editar contenido interno del nodo (no se muestra)' },
-      { keys: 'F', desc: 'Ver el contenido interno del nodo seleccionado' },
-      { keys: 'N', desc: 'Excluir / incluir el nodo en el prompt generator (simbolo rojo = excluido)' },
-      { keys: 'M', desc: 'Ciclar estado de implementacion (todo/wip/done/blocked) — punto de color' },
-      { keys: 'R', desc: 'Toggle "pedido" (request): marca algo nuevo a implementar (cinta)' },
-      { keys: 'Shift + L', desc: 'Archivos del nodo: textarea (una ruta por linea) + boton "del repo…" (lista archivos reales con su path)' },
-      { keys: 'Shift + J', desc: 'Archivos de TEST del nodo (attr tests:, badge matraz) — misma barra que Shift+L' },
-      { keys: 'Shift + P', desc: 'Solver LLM panel (Anthropic prompt-driven)' },
+      { keys: 'Shift + 2', desc: 'Personalizar (color, shape, icono)' },
+      { keys: 'Shift + 3', desc: 'Bloque: lista / note / image / buzon' },
+      { keys: 'Shift + F', desc: 'Labels (Feature, Goal, Ai decision, Review…)' },
+      { keys: 'M / R', desc: 'Ciclar estado (todo/wip/done) / toggle pedido' },
+      { keys: 'Shift + L / Shift + J', desc: 'Archivos / tests del nodo' },
     ],
   },
   {
-    title: 'Align / distribute (≥2 seleccionados)',
+    title: 'Alinear (≥2 nodos)',
+    icon: IcoAlign,
     items: [
-      { keys: 'Ctrl + Alt + L / R', desc: 'Align left / right edges' },
-      { keys: 'Ctrl + Alt + T / B', desc: 'Align top / bottom edges' },
-      { keys: 'Ctrl + Alt + C / M', desc: 'Center horizontal / middle vertical' },
-      { keys: 'Ctrl + Alt + H / V', desc: 'Distribute horizontal / vertical (≥3)' },
+      { keys: 'Ctrl + Alt + L R T B', desc: 'Alinear bordes (izq / der / arriba / abajo)' },
+      { keys: 'Ctrl + Alt + C M', desc: 'Centrar horizontal / vertical' },
+      { keys: 'Ctrl + Alt + H V', desc: 'Distribuir (≥3 nodos)' },
     ],
   },
   {
     title: 'Archivos',
+    icon: IcoFile,
     items: [
-      { keys: 'Ctrl + N', desc: 'Nuevo archivo (prompt si dirty)' },
-      { keys: 'Ctrl + O', desc: 'Abrir .dgr / .txt desde disco' },
-      { keys: 'Ctrl + I', desc: 'Importar (prompt -> diagrama): pega/carga DSL en pestania nueva' },
-      { keys: 'Ctrl + S', desc: 'Guardar al archivo abierto (auto-save 2s tambien)' },
-      { keys: 'Ctrl + Shift + S', desc: 'Guardar como...' },
-      { keys: 'Drag-drop .dgr', desc: 'Tirar archivo al canvas para abrirlo' },
+      { keys: 'Ctrl + N / O', desc: 'Nuevo / abrir' },
+      { keys: 'Ctrl + I', desc: 'Importar (prompt -> diagrama)' },
+      { keys: 'Ctrl + S', desc: 'Guardar (auto-save 2s tambien)' },
     ],
   },
   {
-    title: 'Clipboard / history',
+    title: 'Clipboard / historia',
+    icon: IcoClip,
     items: [
-      { keys: 'Ctrl + C / V / D', desc: 'Copiar / pegar / duplicar nodos' },
-      { keys: 'Ctrl + Z / Ctrl + Y', desc: 'Undo / redo (history de 100 entradas)' },
+      { keys: 'Ctrl + C V D', desc: 'Copiar / pegar / duplicar' },
+      { keys: 'Ctrl + Z / Y', desc: 'Undo / redo' },
     ],
   },
   {
-    title: 'Vista / export',
+    title: 'Vista / exportar',
+    icon: IcoView,
     items: [
-      { keys: 'Ctrl + 0 / + / -', desc: 'Fit / zoom in / zoom out' },
-      { keys: 'Trackpad swipe', desc: 'Pan' },
-      { keys: 'Pinch / Ctrl+wheel', desc: 'Zoom centrado en cursor' },
-      { keys: 'Ctrl + E', desc: 'Export SVG' },
-      { keys: 'Ctrl + Shift + E', desc: 'Export PNG' },
-      { keys: 'Ctrl + /', desc: 'Abrir esta ayuda' },
+      { keys: 'Ctrl + 0 / + / -', desc: 'Fit / zoom in / out' },
+      { keys: 'Pinch / Ctrl+wheel', desc: 'Zoom; swipe = pan' },
+      { keys: 'Shift + G', desc: 'Panel exportar (imagen SVG/PNG + prompt)' },
+      { keys: 'Ctrl + E / Ctrl + Shift + E', desc: 'Exportar SVG / PNG directo' },
     ],
   },
 ];
 
 const SYNTAX: { title: string; lines: string[] }[] = [
   {
-    title: 'Header',
+    title: 'Basico',
     lines: [
       'type: flowchart | sequence | er',
-      'title: Mi diagrama',
-      'direction TB | LR | BT | RL',
+      'title: Mi diagrama        // direction TB | LR | BT | RL',
+      'A                         // nodo simple',
+      'A > B                     // edge (>, <>, --)',
+      'A > B: label              // con etiqueta',
     ],
   },
   {
-    title: 'Flowchart — edges',
+    title: 'Atributos de nodo',
     lines: [
-      'A > B               // directed',
-      'A <> B              // bidirectional',
-      'A -- B              // undirected',
-      'A > B: label        // con etiqueta',
-      'A, B > C, D         // cartesian (4 edges)',
-      'A > B [style: dashed, color: red]',
-      'A > B: hacer login [conditional: true]  // connect condicional',
-    ],
-  },
-  {
-    title: 'Flowchart — nodos',
-    lines: [
-      'A                                       // rectangle simple',
       'A [shape: cylinder, color: #fef3c7]',
-      'A [shape: list, items: one; two, listStyle: numbered]',
-      'A [shape: note, content: SGVsbG8=]      // base64',
-      'A [shape: image, src: <base64>]',
-      'A [progress: true, quantity: 42, icon: aws-rds]',
-      'A [labels: feature; goal; risk]',
-    ],
-  },
-  {
-    title: 'Grupos',
-    lines: ['group "Nombre" {', '  X', '  X > Y', '}'],
-  },
-  {
-    title: 'Sequence',
-    lines: [
-      'Alice > Bob: hola',
-      'Bob --> Alice: hi',
-      'note over Alice, Bob: comentario',
-    ],
-  },
-  {
-    title: 'ER',
-    lines: [
-      'User { id uuid pk; name string }',
-      'Post { id uuid pk; user_id uuid fk }',
-      'User.id > Post.user_id   // 1:N',
-      'A.x <> B.y               // N:M',
-      'A.x -- B.y               // 1:1',
+      'A [shape: list, items: one; two]',
+      'A [shape: upload, items: video HOLA | descripcion]   // buzon',
+      'A [labels: feature; review, status: wip]',
+      'A [file: src/a.ts, tests: src/a.test.ts]',
     ],
   },
 ];
 
 export function HelpModal({ onClose }: { onClose: () => void }) {
   return (
-    <div
-      className="modal-overlay"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-    >
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
       <div className="modal help-modal" onClick={(e) => e.stopPropagation()}>
         <header className="modal-header">
           <h2>Ayuda</h2>
@@ -169,11 +137,13 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
           </button>
         </header>
         <div className="modal-body help-body">
-          <section className="help-section">
-            <h3>Atajos</h3>
+          <div className="help-grid">
             {GROUPS.map((g) => (
-              <div key={g.title} className="help-group">
-                <h4>{g.title}</h4>
+              <div key={g.title} className="help-card">
+                <h4 className="help-card-title">
+                  {g.icon}
+                  {g.title}
+                </h4>
                 <table className="shortcut-table">
                   <tbody>
                     {g.items.map((s) => (
@@ -188,15 +158,20 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
                 </table>
               </div>
             ))}
-          </section>
+          </div>
           <section className="help-section">
-            <h3>Sintaxis DSL</h3>
-            {SYNTAX.map((group) => (
-              <div key={group.title}>
-                <h4>{group.title}</h4>
-                <pre className="syntax-block">{group.lines.join('\n')}</pre>
-              </div>
-            ))}
+            <h3 className="help-card-title">
+              {IcoSyntax}
+              Sintaxis DSL
+            </h3>
+            <div className="help-grid">
+              {SYNTAX.map((group) => (
+                <div key={group.title} className="help-card">
+                  <h4>{group.title}</h4>
+                  <pre className="syntax-block">{group.lines.join('\n')}</pre>
+                </div>
+              ))}
+            </div>
           </section>
         </div>
       </div>

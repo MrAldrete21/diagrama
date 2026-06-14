@@ -97,7 +97,24 @@ Partes de abajo quedaron viejas. Estado real:
     su `BuzonChecklist` (se completa ahi mismo, sin buscar el nodo). Botones **◀ ▶** avanzan
     por las tareas pendientes y `onFocusNode` selecciona el nodo + **centra la camara**
     (`panZoomRef.centerOn`, mismo patron que NodeSearch).
-  - **Indicador de sync** (`syncStatus` + `.sync-badge`, fixed top-center): muestra si el
+  - **Panel "exportar"** (PromptGenPanel renombrado, Shift+G / boton "exportar" arriba-izq
+    del header): junta export de imagen (SVG/PNG, seccion `.export-section`) + el prompt
+    generator. Los botones SVG/PNG ya NO estan en el header (se movieron aca). Se quito el
+    boton "reset layout" del header y el item "Ejemplos" de la ShortcutBar (examples sigue
+    en el header).
+  - **Labels `ai-decision` + `review` (planear antes de implementar)**: `ai-decision`/
+    `ai-decision-user` ahora significan "la IA propone editando el diagrama y NO implementa
+    hasta aprobacion"; los nodos nuevos/editados de la propuesta se marcan con la label
+    **`review`**, que LATE (clase `is-review` -> `@keyframes review-halo` + chip pulsa con
+    `label-chip-review`/`review-chip`). Documentado en `public/loop-claude-code.md` y
+    `public/prompt-to-diagram.txt` para que el modelo siga el workflow. Respeta
+    prefers-reduced-motion.
+  - **Help mejorado** (`HelpModal`): grid de cards con iconito por grupo (`.help-grid`/
+    `.help-card`/`.help-ico`), mas compacto. Fixes: crear nodo conectado snapea SOLO el eje
+    en que se mueve (queda colineal = angulo recto; antes redondeaba ambos y salia chueco);
+    WASD sin seleccion (ej tras Esc) retoma del ultimo nodo enfocado (`lastFocusedNodeRef`)
+    en vez del primero; el boton "+" de TabBar llama `onAdd()` sin pasar el evento.
+  - **Indicador de sync** (`syncStatus` + `.sync-badge`, fixed bottom-center): muestra si el
     diagrama esta guardado en su .txt (`✓ x.txt` / `guardando…` / `sin vincular` / error).
     Lo maneja el effect de auto-guardado (match por title).
   - **Prompt del diff** (`SnapshotPanel` boton "copiar prompt de lo nuevo"): genera el

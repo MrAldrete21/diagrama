@@ -23,8 +23,9 @@ export const PRESET_LABELS: LabelDef[] = [
   { key: 'input', display: 'Input', bg: '#cffafe', fg: '#155e75', description: 'Data or signal flowing into the system or step.' },
   { key: 'output', display: 'Output', bg: '#fae8ff', fg: '#701a75', description: 'Data or signal flowing out of the system or step.' },
   { key: 'decision', display: 'Decision', bg: '#ffedd5', fg: '#7c2d12', description: 'A branching point with multiple possible paths.' },
-  { key: 'ai-decision', display: 'Ai decision (auto)', bg: '#e0e7ff', fg: '#3730a3', description: 'An automated decision made by an AI/LLM at runtime; the model picks the path or output and the system acts on it without human review.' },
-  { key: 'ai-decision-user', display: 'Ai decision (user)', bg: '#fce7f3', fg: '#9d174f', description: 'An AI/LLM proposes options or a recommendation, but the user makes the final decision before the system proceeds.' },
+  { key: 'ai-decision', display: 'Ai decision (auto)', bg: '#e0e7ff', fg: '#3730a3', description: 'Punto donde la IA decide el diseno. Antes de implementar NADA, el modelo propone los cambios EDITANDO el diagrama (agrega/edita nodos) y los marca con la label "review" para que el usuario los apruebe. No escribir codigo hasta la aprobacion.' },
+  { key: 'ai-decision-user', display: 'Ai decision (user)', bg: '#fce7f3', fg: '#9d174f', description: 'La IA propone opciones o una recomendacion editando el diagrama, pero el usuario toma la decision final antes de que el sistema avance. No implementar hasta la aprobacion.' },
+  { key: 'review', display: 'Review', bg: '#fde68a', fg: '#92400e', description: 'Cambio propuesto por el modelo (nodo nuevo o editado tras una Ai decision) que el usuario todavia no aprobo. No implementar; esperar revision. El nodo late suave hasta que se quita la label.' },
 ];
 
 const PRESET_MAP = new Map(PRESET_LABELS.map((l) => [l.key.toLowerCase(), l]));

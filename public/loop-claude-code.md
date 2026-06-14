@@ -41,6 +41,21 @@ como una lista "Pedidos". Cuando completa todo, el nodo pasa solo a
 `status: done`. El detalle queda en el attr `buzon` (base64-JSON, no lo edites a
 mano): al volver a leer el diagrama ves que archivos subio y que respondio.
 
+## Ai decision -> planear en el diagrama ANTES de implementar (IMPORTANTE)
+Si un nodo tiene la label `ai-decision` (o `ai-decision-user`), es un punto donde
+VOS (la IA) tenes que decidir el diseno. La regla es: **no escribas codigo
+todavia**. Primero PROPONE los cambios EDITANDO el diagrama:
+1. Agrega/edita los nodos que reflejan tu propuesta (arquitectura, pasos, archivos).
+2. A cada nodo que crees o edites como parte de la propuesta, ponele la label
+   `review` (ej `labels: feature; review`). Esos nodos LATEN en la app para que el
+   usuario los note.
+3. Reenvia el DSL completo (POST /__diagrams/push) y AVISALE al usuario que revise
+   el diagrama. No implementes nada hasta que el usuario apruebe.
+
+Cuando el usuario aprueba, implementas y QUITAS la label `review` de esos nodos
+(y pones `status: done` + `file:` como siempre). Resumen: ai-decision = pensar y
+dibujar; review = pendiente de aprobacion; sin review = aprobado, se puede codear.
+
 ## Escribir (al implementar)
 En el nodo: pone `status: done`, agrega `file:` con lo que tocaste, y quita
 `request` si era un pedido. Manda el DSL COMPLETO (trae, edita, reenvia):
